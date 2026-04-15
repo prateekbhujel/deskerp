@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -43,9 +44,21 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function store(StoreCustomerRequest $request): RedirectResponse
+    public function store(StoreCustomerRequest $request): RedirectResponse|JsonResponse
     {
         $customer = Customer::query()->create($this->validatedData($request));
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'code' => $customer->code,
+                'phone' => $customer->phone,
+                'email' => $customer->email,
+                'taxNumber' => $customer->tax_number,
+                'billingAddress' => $customer->billing_address,
+            ]);
+        }
 
         return redirect()
             ->route('customers.show', $customer)

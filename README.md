@@ -1,77 +1,131 @@
 # DeskERP
 
-DeskERP is a local-first accounting MVP built with Laravel, SQLite, Blade, and a lightweight browser-first workflow for macOS development. The core application is designed to stay usable in the browser during development and then be wrapped for Windows desktop delivery in the final packaging stage.
+DeskERP is a local-first accounting product for small business workflows. Laravel remains the backend source of truth for auth, invoicing, payments, inventory, reporting, PDF generation, and SQLite persistence, while the authenticated UI now runs through Inertia.js + React + TypeScript + Ant Design. Browser-mode development on macOS stays first-class, and the Electron wrapper in `desktop/` remains available for the later Windows desktop bundle.
 
-## MVP Scope
-
-- Local admin login with session-based authentication
-- Customers, suppliers, units, categories, and items
-- Item pricing, tax-ready fields, and simple future-ready price tiers
-- Sales invoices with draft/final states, totals, printable view, and PDF export
-- Payments received and payments made
-- Inventory opening stock, stock movements, auto stock updates from final invoices, and current stock tracking
-- Sales, payment, inventory, customer ledger, and supplier ledger reports
-- CSV export for reports
-- Manual backup and restore with SQLite file copies
-
-## Stack
+## Current Stack
 
 - Laravel 12
 - PHP 8.2+
 - SQLite
-- Blade + Tailwind CSS
-- DOMPDF for invoice PDF export
-- Electron wrapper preparation in `desktop/`
+- Inertia.js
+- React 19 + TypeScript
+- Ant Design
+- Tailwind CSS
+- `maatwebsite/excel` for XLSX export
+- `barryvdh/laravel-dompdf` for invoice PDF output
+- Electron wrapper in `desktop/`
+
+## Current MVP Scope
+
+- Session-based local auth with admin seed
+- Customers, suppliers, units, categories, and items
+- Pricing tiers, tax-ready item fields, and opening stock
+- Sales invoices with draft/final states, remote search masters, printable view, and PDF download
+- Payments received and payments made with invoice linking and overpayment protection
+- Inventory movement and current stock updates from finalized invoices
+- Sales, payments, inventory, customer ledger, and supplier ledger reports
+- CSV and XLSX exports for reports
+- Fiscal year settings for report defaults and numbering
+- Optional Bikram Sambat date display with AD storage in SQLite
+- Manual SQLite backup and restore
 
 ## Local Setup
 
 1. Install PHP, Composer, Node.js, npm, and SQLite.
-2. From the `desk` folder, install dependencies:
+2. From the repo root, install dependencies:
 
 ```bash
 composer install
 npm install
 ```
 
-3. Create your environment file and application key:
+3. Create `.env`, generate the app key, and create the SQLite file:
 
 ```bash
 cp .env.example .env
 php artisan key:generate
-```
-
-4. Make sure the SQLite database file exists:
-
-```bash
 touch database/database.sqlite
 ```
 
-5. Run migrations and seed the local admin plus reference data:
+4. Run migrations and seed the app:
 
 ```bash
 php artisan migrate --seed
 ```
 
-6. Start the browser-mode app:
+5. Start DeskERP in browser mode:
 
 ```bash
 php artisan serve
 npm run dev
 ```
 
-7. Open [http://127.0.0.1:8000](http://127.0.0.1:8000)
+6. Open [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ## Default Admin Login
 
 - Email: `admin@deskerp.local`
 - Password: `deskerp123`
 
-You can override these in `.env` with:
+You can override the seeded admin in `.env`:
 
 ```env
 DESKERP_ADMIN_NAME="DeskERP Admin"
 DESKERP_ADMIN_EMAIL="admin@deskerp.local"
 DESKERP_ADMIN_PASSWORD="deskerp123"
+```
+
+## React + Inertia Notes
+
+- The authenticated app shell lives in `resources/js/app.tsx`.
+- React pages are under `resources/js/pages`.
+- Shared React layout/components live in `resources/js/components`, `resources/js/hooks`, and `resources/js/lib`.
+- Laravel controllers still own validation, persistence, numbering, stock updates, and exports.
+- Quick-add customer/item modals reuse Laravel validation through JSON-aware controller responses.
+
+## Nepali Calendar + Fiscal Year
+
+- Turn BS display on from `Settings`.
+- Dates are displayed in BS in the UI when enabled, but stored as AD ISO dates in the database.
+- Fiscal year start/end values default report filters.
+- Invoice/payment numbering now includes the configured fiscal year label for newly generated numbers.
+
+## Reports and Exports
+
+- Report pages support CSV and XLSX export with the active filters.
+- Invoice print and PDF download continue to use the Laravel print/PDF flow.
+- Ledger reports are paginated in the UI and export the full filtered dataset.
+
+## Electron Wrapper
+
+The desktop wrapper remains isolated in `desktop/`.
+
+Install desktop dependencies when you need the wrapper:
+
+```bash
+cd desktop
+npm install
+```
+
+Run Electron against an already-running local Laravel server:
+
+```bash
+cd desktop
+npm run dev
+```
+
+Run Electron with the managed Laravel server behavior:
+
+```bash
+cd desktop
+npm run dev:managed
+```
+
+Build the Windows portable package later from the wrapper directory:
+
+```bash
+cd desktop
+npm run package:win
 ```
 
 ## Useful Commands
@@ -83,40 +137,21 @@ php artisan test
 npm run build
 ```
 
-## Browser-First Workflow
+## Testing Coverage
 
-- Develop the main app in the browser on macOS first.
-- Keep all accounting logic inside the Laravel app.
-- Keep desktop-specific code isolated inside `desktop/`.
-- Do not introduce cloud-only dependencies for core operations.
-
-## Reports and Exports
-
-- Invoice PDF export is available from invoice detail pages.
-- Report CSV export is available from the report pages.
-- Print-friendly invoice output is available at the invoice print route.
-
-## Backup and Restore
-
-- Manual backups are stored as copied `.sqlite` files under `storage/app/backups`.
-- Restore replaces the current database, so use it carefully.
-- The UI requires typing `RESTORE` before replacement.
-
-## Testing
-
-The suite includes DeskERP-specific coverage for:
+DeskERP currently includes automated coverage for:
 
 - Invoice calculations
-- Payment outstanding balance logic
-- Stock changes from final vs draft invoices
-- Pricing tier behavior
+- Payment outstanding-balance logic
+- Stock behavior for draft vs final invoices
+- Pricing tier resolution
+- HTTP invoice creation flow
+- HTTP payment creation linked to invoices
+- Report CSV/XLSX export endpoints
 
-## Desktop Preparation
+## Out of Scope for This MVP
 
-The Electron preparation lives in `desktop/`.
-
-- `desktop/main.js` can open the Laravel app in Electron
-- `desktop/package.json` isolates desktop dependencies from the main Laravel app
-- `desktop/README.md` explains the packaging approach for Windows
-
-This repository does not include an updater, sync layer, hosted backend, analytics, or telemetry.
+- Hosted backend services
+- Sync, telemetry, analytics, or cloud backup
+- Auto-update workflow
+- Licensing or activation systems

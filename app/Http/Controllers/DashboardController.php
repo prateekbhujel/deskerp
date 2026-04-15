@@ -7,15 +7,16 @@ use App\Models\Invoice;
 use App\Models\Item;
 use App\Models\Payment;
 use App\Models\Supplier;
-use Illuminate\Contracts\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(): Response
     {
         $currentMonth = now()->startOfMonth();
 
-        return view('dashboard', [
+        return Inertia::render('Dashboard', [
             'stats' => [
                 'customers' => Customer::query()->count(),
                 'suppliers' => Supplier::query()->count(),
@@ -45,6 +46,8 @@ class DashboardController extends Controller
                 ->orderBy('current_stock')
                 ->limit(8)
                 ->get(),
+        ])->withViewData([
+            'title' => 'Dashboard',
         ]);
     }
 }
