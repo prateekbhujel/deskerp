@@ -1,5 +1,5 @@
 const { contextBridge } = require('electron');
 
-contextBridge.exposeInMainWorld('deskproDesktop', {
+contextBridge.exposeInMainWorld('deskerpDesktop', {
     environment: 'electron',
 });

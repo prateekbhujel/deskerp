@@ -5,38 +5,56 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'DeskPro') }}</title>
+        <title>{{ config('app.name', 'DeskERP') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=ibm-plex-sans:400,500,600,700|ibm-plex-mono:400,500&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(13,148,136,0.16),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.14),_transparent_35%),linear-gradient(180deg,_#f8fafc,_#e2e8f0)]">
+    <body class="antialiased">
+        <div class="min-h-screen bg-[linear-gradient(180deg,_#eceff4_0%,_#dee4ea_100%)]">
             <div class="mx-auto flex min-h-screen max-w-6xl items-center px-4 py-10">
-                <div class="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-                    <div class="hidden rounded-[2rem] border border-white/60 bg-white/60 p-10 shadow-xl backdrop-blur lg:block">
-                        <div class="mb-10 inline-flex rounded-2xl border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">
-                            DeskPro
+                <div class="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                    <div class="hidden rounded-2xl border border-slate-300/80 bg-white/80 p-8 shadow-[0_12px_32px_rgba(15,23,42,0.08)] backdrop-blur lg:block">
+                        <div class="mb-8 inline-flex rounded-md border border-teal-200 bg-teal-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-700">
+                            DeskERP
                         </div>
 
-                        <h1 class="max-w-xl text-4xl font-semibold tracking-tight text-slate-900">
-                            Dense, practical accounting software built for local-first business workflows.
+                        <h1 class="max-w-xl text-3xl font-semibold tracking-tight text-slate-900">
+                            Local business accounting with fast entry, printable invoices, and lean inventory control.
                         </h1>
 
-                        <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">
-                            Run DeskPro in the browser during development, keep data in SQLite, and prepare the same core app for Windows desktop bundling later.
+                        <p class="mt-4 max-w-xl text-sm leading-7 text-slate-600">
+                            Develop in the browser on macOS, keep the data local in SQLite, and ship the same core app inside a Windows desktop wrapper later.
                         </p>
 
-                        <div class="mt-10 grid gap-4 md:grid-cols-2">
+                        <div class="mt-8 grid gap-4 md:grid-cols-2">
                             <div class="dp-card-soft p-5">
-                                <div class="text-sm font-semibold text-slate-900">Local authentication</div>
-                                <div class="mt-2 text-sm text-slate-500">Session-based login with a seeded admin account and role-ready user model.</div>
+                                <div class="text-sm font-semibold text-slate-900">Daily workflow</div>
+                                <div class="mt-2 text-sm text-slate-500">Masters, invoices, payments, stock, reports, backup, and restore inside one compact workspace.</div>
                             </div>
                             <div class="dp-card-soft p-5">
-                                <div class="text-sm font-semibold text-slate-900">Accounting flow first</div>
-                                <div class="mt-2 text-sm text-slate-500">Invoices, payments, inventory, reports, exports, and backup live in one lean stack.</div>
+                                <div class="text-sm font-semibold text-slate-900">Local control</div>
+                                <div class="mt-2 text-sm text-slate-500">Session auth, CSV export, invoice PDF, and SQLite data without a hosted backend.</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 rounded-xl border border-slate-300 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+                            <div class="dp-label !mb-2">System Notes</div>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between gap-4">
+                                    <span>Mode</span>
+                                    <span class="dp-mono text-slate-800">Browser First</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-4">
+                                    <span>Database</span>
+                                    <span class="dp-mono text-slate-800">SQLite</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-4">
+                                    <span>Desktop Target</span>
+                                    <span class="dp-mono text-slate-800">Windows Wrapper</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -46,13 +64,13 @@
                             <a href="{{ route('login') }}" class="inline-flex items-center gap-3 text-slate-900">
                                 <x-application-logo class="h-12 w-12" />
                                 <div>
-                                    <div class="text-xl font-semibold tracking-tight">DeskPro</div>
-                                    <div class="text-sm text-slate-500">Local-first accounting MVP</div>
+                                    <div class="text-xl font-semibold tracking-tight">DeskERP</div>
+                                    <div class="text-sm text-slate-500">Local business accounting</div>
                                 </div>
                             </a>
                         </div>
 
-                        <div class="rounded-[2rem] border border-white/60 bg-white/90 px-6 py-8 shadow-xl backdrop-blur sm:px-8">
+                        <div class="rounded-2xl border border-slate-300/80 bg-white/95 px-6 py-8 shadow-[0_12px_32px_rgba(15,23,42,0.08)] backdrop-blur sm:px-8">
                             {{ $slot }}
                         </div>
                     </div>

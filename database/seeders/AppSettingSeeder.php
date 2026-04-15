@@ -10,10 +10,10 @@ class AppSettingSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
-            'company_name' => 'DeskPro',
+            'company_name' => 'DeskERP',
             'company_address' => 'Local-first accounting workspace',
             'company_phone' => '',
-            'company_email' => 'deskpro@example.local',
+            'company_email' => 'deskerp@example.local',
             'company_tax_number' => '',
             'invoice_prefix' => 'INV',
             'invoice_next_number' => '1',

@@ -35,7 +35,7 @@ class BackupService
     {
         $directory = storage_path('app/backups');
         $source = database_path('database.sqlite');
-        $filename = 'deskpro-backup-'.now()->format('Ymd-His').'.sqlite';
+        $filename = 'deskerp-backup-'.now()->format('Ymd-His').'.sqlite';
         $destination = $directory.DIRECTORY_SEPARATOR.$filename;
 
         File::ensureDirectoryExists($directory);
@@ -69,7 +69,7 @@ class BackupService
 
         if (! in_array('migrations', $tables, true) || ! in_array('users', $tables, true)) {
             throw ValidationException::withMessages([
-                'backup_file' => 'The uploaded backup does not look like a DeskPro database.',
+                'backup_file' => 'The uploaded backup does not look like a DeskERP database.',
             ]);
         }
     }

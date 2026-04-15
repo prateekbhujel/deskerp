@@ -1,6 +1,6 @@
-# DeskPro
+# DeskERP
 
-DeskPro is a local-first accounting MVP built with Laravel, SQLite, Blade, and a lightweight browser-first workflow for macOS development. The core application is designed to stay usable in the browser during development and then be wrapped for Windows desktop delivery in the final packaging stage.
+DeskERP is a local-first accounting MVP built with Laravel, SQLite, Blade, and a lightweight browser-first workflow for macOS development. The core application is designed to stay usable in the browser during development and then be wrapped for Windows desktop delivery in the final packaging stage.
 
 ## MVP Scope
 
@@ -63,15 +63,15 @@ npm run dev
 
 ## Default Admin Login
 
-- Email: `admin@deskpro.local`
-- Password: `deskpro123`
+- Email: `admin@deskerp.local`
+- Password: `deskerp123`
 
 You can override these in `.env` with:
 
 ```env
-DESKPRO_ADMIN_NAME="DeskPro Admin"
-DESKPRO_ADMIN_EMAIL="admin@deskpro.local"
-DESKPRO_ADMIN_PASSWORD="deskpro123"
+DESKERP_ADMIN_NAME="DeskERP Admin"
+DESKERP_ADMIN_EMAIL="admin@deskerp.local"
+DESKERP_ADMIN_PASSWORD="deskerp123"
 ```
 
 ## Useful Commands
@@ -104,7 +104,7 @@ npm run build
 
 ## Testing
 
-The suite includes DeskPro-specific coverage for:
+The suite includes DeskERP-specific coverage for:
 
 - Invoice calculations
 - Payment outstanding balance logic

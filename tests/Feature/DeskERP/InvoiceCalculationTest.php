@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\DeskPro;
+namespace Tests\Feature\DeskERP;
 
 use App\Models\Customer;
 use App\Models\Item;
@@ -21,7 +21,7 @@ class InvoiceCalculationTest extends TestCase
         $unit = Unit::query()->create(['name' => 'Piece', 'code' => 'PCS', 'is_active' => true]);
         $item = Item::query()->create([
             'unit_id' => $unit->id,
-            'name' => 'DeskPro License',
+            'name' => 'DeskERP License',
             'item_type' => 'service',
             'base_price' => 90,
             'selling_price' => 120,
@@ -38,7 +38,7 @@ class InvoiceCalculationTest extends TestCase
             'lines' => [
                 [
                     'item_id' => $item->id,
-                    'description' => 'DeskPro License',
+                    'description' => 'DeskERP License',
                     'unit_name' => 'PCS',
                     'quantity' => 2,
                     'rate' => 120,

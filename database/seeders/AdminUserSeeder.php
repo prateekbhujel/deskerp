@@ -11,12 +11,12 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => env('DESKPRO_ADMIN_EMAIL', 'admin@deskpro.local')],
+            ['email' => env('DESKERP_ADMIN_EMAIL', 'admin@deskerp.local')],
             [
-                'name' => env('DESKPRO_ADMIN_NAME', 'DeskPro Admin'),
+                'name' => env('DESKERP_ADMIN_NAME', 'DeskERP Admin'),
                 'role' => 'admin',
                 'is_active' => true,
-                'password' => Hash::make(env('DESKPRO_ADMIN_PASSWORD', 'deskpro123')),
+                'password' => Hash::make(env('DESKERP_ADMIN_PASSWORD', 'deskerp123')),
             ],
         );
     }

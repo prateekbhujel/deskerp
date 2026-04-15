@@ -5,7 +5,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your DeskPro user name and login email address.") }}
+            {{ __("Update your DeskERP user name and login email address.") }}
         </p>
     </header>
 

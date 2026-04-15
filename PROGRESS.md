@@ -1,4 +1,4 @@
-# DeskPro Progress
+# DeskERP Progress
 
 ## Current Status
 - [x] Repository inspected
@@ -23,7 +23,7 @@
 7. Phase 7: Add Windows desktop wrapper preparation while keeping the Laravel app usable in browser mode.
 
 ## Notes
-- Product name in UI/docs: DeskPro
+- Product name in UI/docs: DeskERP
 - Local-first MVP with SQLite
 - Browser mode first, desktop packaging later
 - Prioritize correctness and maintainability over visual polish

@@ -1,4 +1,4 @@
-# DeskPro Desktop Wrapper
+# DeskERP Desktop Wrapper
 
 This folder isolates the Electron wrapper from the main Laravel application.
 
@@ -38,7 +38,7 @@ The practical low-budget path is:
 
 ## Notes
 
-- `main.js` is prepared to open DeskPro at `http://127.0.0.1:8000`.
+- `main.js` is prepared to open DeskERP at `http://127.0.0.1:8000`.
 - In development it can use the system PHP executable.
-- For final Windows builds, point `DESKPRO_PHP_BINARY` to the bundled PHP runtime.
+- For final Windows builds, point `DESKERP_PHP_BINARY` to the bundled PHP runtime.
 - Packaging is intentionally isolated from the browser-first MVP so the accounting app can stay easy to develop.

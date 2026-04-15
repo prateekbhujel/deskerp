@@ -13,7 +13,7 @@
             <div class="space-y-6">
                 <div class="dp-card p-5">
                     <h2 class="text-lg font-semibold text-slate-900">Create Backup</h2>
-                    <p class="mt-2 text-sm text-slate-500">DeskPro will copy the current local SQLite database into a downloadable backup file.</p>
+                    <p class="mt-2 text-sm text-slate-500">DeskERP will copy the current local SQLite database into a downloadable backup file.</p>
                     <form method="POST" action="{{ route('backups.store') }}" class="mt-5">
                         @csrf
                         <button type="submit" class="dp-btn-primary">Download Backup</button>

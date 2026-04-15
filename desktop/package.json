@@ -1,11 +1,11 @@
 {
-    "name": "deskpro-desktop",
+    "name": "deskerp-desktop",
     "version": "0.1.0",
     "private": true,
-    "description": "Electron wrapper for DeskPro",
+    "description": "Electron wrapper for DeskERP",
     "main": "main.js",
     "scripts": {
-        "dev": "cross-env DESKPRO_START_URL=http://127.0.0.1:8000 DESKPRO_SKIP_SERVER=1 electron .",
+        "dev": "cross-env DESKERP_START_URL=http://127.0.0.1:8000 DESKERP_SKIP_SERVER=1 electron .",
         "dev:managed": "electron .",
         "package:win": "electron-builder --win portable"
     },
@@ -15,8 +15,8 @@
         "electron-builder": "^24.13.3"
     },
     "build": {
-        "appId": "local.deskpro.desktop",
-        "productName": "DeskPro",
+        "appId": "local.deskerp.desktop",
+        "productName": "DeskERP",
         "directories": {
             "output": "dist"
         },

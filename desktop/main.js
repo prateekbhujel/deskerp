@@ -4,9 +4,9 @@ const http = require('node:http');
 const path = require('node:path');
 
 const host = '127.0.0.1';
-const port = process.env.DESKPRO_PORT || '8000';
-const startUrl = process.env.DESKPRO_START_URL || `http://${host}:${port}`;
-const shouldManageServer = process.env.DESKPRO_SKIP_SERVER !== '1';
+const port = process.env.DESKERP_PORT || '8000';
+const startUrl = process.env.DESKERP_START_URL || `http://${host}:${port}`;
+const shouldManageServer = process.env.DESKERP_SKIP_SERVER !== '1';
 
 let mainWindow;
 let phpProcess;
@@ -41,7 +41,7 @@ function waitForServer(url, timeoutMs = 15000) {
 
             request.on('error', () => {
                 if (Date.now() - startedAt >= timeoutMs) {
-                    reject(new Error(`DeskPro server did not become available at ${url}`));
+                    reject(new Error(`DeskERP server did not become available at ${url}`));
                     return;
                 }
 
@@ -56,7 +56,7 @@ function waitForServer(url, timeoutMs = 15000) {
 function startLaravelServer() {
     const projectRoot = path.resolve(__dirname, '..');
     const artisanPath = path.join(projectRoot, 'artisan');
-    const phpBinary = process.env.DESKPRO_PHP_BINARY || (process.platform === 'win32' ? 'php.exe' : 'php');
+    const phpBinary = process.env.DESKERP_PHP_BINARY || (process.platform === 'win32' ? 'php.exe' : 'php');
 
     phpProcess = spawn(phpBinary, ['artisan', 'serve', `--host=${host}`, `--port=${port}`], {
         cwd: projectRoot,

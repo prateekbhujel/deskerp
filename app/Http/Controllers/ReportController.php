@@ -42,7 +42,7 @@ class ReportController extends Controller
 
         if ($request->string('export') === 'csv') {
             return CsvExport::download(
-                'deskpro-sales-report.csv',
+                'deskerp-sales-report.csv',
                 ['Date', 'Invoice', 'Customer', 'Subtotal', 'Discount', 'Tax', 'Total', 'Paid', 'Balance'],
                 $query->get()->map(fn (Invoice $invoice) => [
                     $invoice->issue_date?->format('Y-m-d'),
@@ -83,7 +83,7 @@ class ReportController extends Controller
 
         if ($request->string('export') === 'csv') {
             return CsvExport::download(
-                'deskpro-payment-report.csv',
+                'deskerp-payment-report.csv',
                 ['Date', 'Number', 'Direction', 'Party', 'Invoice', 'Method', 'Reference', 'Amount'],
                 $query->get()->map(fn (Payment $payment) => [
                     $payment->payment_date?->format('Y-m-d'),
@@ -124,7 +124,7 @@ class ReportController extends Controller
 
         if ($request->string('export') === 'csv') {
             return CsvExport::download(
-                'deskpro-inventory-report.csv',
+                'deskerp-inventory-report.csv',
                 ['SKU', 'Item', 'Category', 'Unit', 'Current Stock', 'Reorder Level', 'Base Price', 'Stock Value'],
                 $query->get()->map(fn (Item $item) => [
                     $item->sku,
@@ -196,7 +196,7 @@ class ReportController extends Controller
 
         if ($request->string('export') === 'csv') {
             return CsvExport::download(
-                'deskpro-customer-ledger.csv',
+                'deskerp-customer-ledger.csv',
                 ['Date', 'Type', 'Reference', 'Debit', 'Credit', 'Balance', 'Notes'],
                 $ledger->map(fn (array $entry) => [
                     $entry['date'],
@@ -245,7 +245,7 @@ class ReportController extends Controller
 
         if ($request->string('export') === 'csv') {
             return CsvExport::download(
-                'deskpro-supplier-ledger.csv',
+                'deskerp-supplier-ledger.csv',
                 ['Date', 'Type', 'Reference', 'Debit', 'Credit', 'Balance', 'Notes'],
                 $ledger->map(fn (array $entry) => [
                     $entry['date'],

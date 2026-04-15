@@ -4,87 +4,100 @@
 
 @layer base {
     :root {
-        --dp-ink: 15 23 42;
+        --dp-ink: 17 24 39;
         --dp-panel: 255 255 255;
-        --dp-muted: 100 116 139;
-        --dp-accent: 14 116 144;
-        --dp-line: 226 232 240;
-        --dp-bg: 241 245 249;
+        --dp-muted: 71 85 105;
+        --dp-accent: 13 148 136;
+        --dp-line: 203 213 225;
+        --dp-bg: 239 241 245;
         --dp-strong: 15 118 110;
         --dp-warn: 180 83 9;
         --dp-danger: 185 28 28;
     }
 
     body {
-        @apply bg-slate-100 text-slate-900 antialiased;
+        @apply bg-slate-200 text-slate-900 antialiased;
+        font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+        font-feature-settings: 'tnum' 1, 'ss01' 1;
     }
 
     [x-cloak] {
         display: none !important;
     }
+
+    input,
+    select,
+    textarea,
+    button {
+        font-feature-settings: 'tnum' 1, 'ss01' 1;
+    }
+
+    ::selection {
+        @apply bg-teal-100 text-slate-900;
+    }
 }
 
 @layer components {
     .dp-shell {
-        @apply min-h-screen bg-slate-100;
+        @apply min-h-screen bg-[linear-gradient(180deg,#eef2f7_0%,#e5e7eb_100%)];
     }
 
     .dp-card {
-        @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+        @apply rounded-lg border border-slate-300/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)];
     }
 
     .dp-card-soft {
-        @apply rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur;
+        @apply rounded-lg border border-slate-300/80 bg-white/90 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur;
     }
 
     .dp-section {
-        @apply space-y-5;
+        @apply space-y-4;
     }
 
     .dp-title {
-        @apply text-2xl font-semibold tracking-tight text-slate-900;
+        @apply text-xl font-semibold tracking-tight text-slate-900;
     }
 
     .dp-subtitle {
-        @apply text-sm text-slate-500;
+        @apply text-sm leading-6 text-slate-500;
     }
 
     .dp-toolbar {
-        @apply flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-end lg:justify-between;
+        @apply flex flex-col gap-3 rounded-lg border border-slate-300 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:flex-row lg:items-end lg:justify-between;
     }
 
     .dp-btn {
-        @apply inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-[13px] font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50;
     }
 
     .dp-btn-primary {
-        @apply inline-flex items-center justify-center rounded-xl bg-teal-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-teal-800;
+        @apply inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-3 py-2 text-[13px] font-medium text-white shadow-sm transition hover:bg-teal-800;
     }
 
     .dp-btn-danger {
-        @apply inline-flex items-center justify-center rounded-xl bg-red-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-800;
+        @apply inline-flex items-center justify-center gap-2 rounded-md bg-red-700 px-3 py-2 text-[13px] font-medium text-white shadow-sm transition hover:bg-red-800;
     }
 
     .dp-input,
     .dp-select,
     .dp-textarea {
-        @apply w-full rounded-xl border-slate-300 bg-white text-sm text-slate-900 shadow-sm focus:border-teal-700 focus:ring-teal-700;
+        @apply w-full rounded-md border-slate-300 bg-white px-3 py-2 text-[13px] leading-5 text-slate-900 shadow-sm focus:border-teal-700 focus:ring-teal-700;
     }
 
     .dp-label {
-        @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500;
+        @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500;
     }
 
     .dp-grid {
-        @apply grid gap-4 md:grid-cols-2 xl:grid-cols-4;
+        @apply grid gap-3 md:grid-cols-2 xl:grid-cols-4;
     }
 
     .dp-stat {
-        @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm;
+        @apply rounded-lg border border-slate-300 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)];
     }
 
     .dp-table-wrap {
-        @apply overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm;
+        @apply overflow-x-auto rounded-lg border border-slate-300 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)];
     }
 
     .dp-table {
@@ -92,15 +105,15 @@
     }
 
     .dp-table thead {
-        @apply bg-slate-50;
+        @apply bg-slate-100/80;
     }
 
     .dp-table th {
-        @apply whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500;
+        @apply whitespace-nowrap px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500;
     }
 
     .dp-table td {
-        @apply whitespace-nowrap px-4 py-3 align-top text-slate-700;
+        @apply whitespace-nowrap px-3 py-2.5 align-top text-[13px] text-slate-700;
     }
 
     .dp-table tbody tr {
@@ -108,7 +121,7 @@
     }
 
     .dp-badge {
-        @apply inline-flex rounded-full px-2.5 py-1 text-xs font-semibold;
+        @apply inline-flex rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em];
     }
 
     .dp-badge-neutral {
@@ -125,5 +138,26 @@
 
     .dp-badge-danger {
         @apply bg-red-100 text-red-800;
+    }
+
+    .dp-chip {
+        @apply inline-flex items-center rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600;
+    }
+
+    .dp-kbd {
+        @apply inline-flex min-w-[1.9rem] items-center justify-center rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700;
+        font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    .dp-quick-link {
+        @apply flex items-center justify-between gap-3 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50/40;
+    }
+
+    .dp-panel-head {
+        @apply flex flex-col gap-3 border-b border-slate-200 px-4 py-3 lg:flex-row lg:items-start lg:justify-between;
+    }
+
+    .dp-mono {
+        font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
     }
 }

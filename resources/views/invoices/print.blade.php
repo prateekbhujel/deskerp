@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>{{ $invoice->invoice_number }} - DeskPro</title>
+        <title>{{ $invoice->invoice_number }} - DeskERP</title>
         <style>
             body { font-family: DejaVu Sans, sans-serif; color: #0f172a; margin: 24px; }
             .header, .summary { width: 100%; margin-bottom: 24px; }
@@ -23,7 +23,7 @@
         <table class="header">
             <tr>
                 <td>
-                    <div class="title">DeskPro Invoice</div>
+                    <div class="title">DeskERP Invoice</div>
                     <div class="muted">Local-first accounting document</div>
                 </td>
                 <td class="right">

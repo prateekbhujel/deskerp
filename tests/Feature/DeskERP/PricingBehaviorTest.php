@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\DeskPro;
+namespace Tests\Feature\DeskERP;
 
 use App\Models\Item;
 use App\Models\Unit;
