@@ -13,6 +13,7 @@ interface RemoteLookupSelectProps<T extends Record<string, unknown>> {
     placeholder?: string;
     allowClear?: boolean;
     disabled?: boolean;
+    testId?: string;
 }
 
 function mergeOptions<T extends Record<string, unknown>>(existing: LookupOption<T>[], incoming: LookupOption<T>[]) {
@@ -33,6 +34,7 @@ export const RemoteLookupSelect = <T extends Record<string, unknown>,>({
     placeholder,
     allowClear = true,
     disabled = false,
+    testId,
 }: RemoteLookupSelectProps<T>) => {
     const [options, setOptions] = useState<LookupOption<T>[]>(value ? [value] : []);
     const [loading, setLoading] = useState(false);
@@ -76,6 +78,7 @@ export const RemoteLookupSelect = <T extends Record<string, unknown>,>({
 
     return (
         <Select
+            data-testid={testId}
             showSearch
             allowClear={allowClear}
             filterOption={false}

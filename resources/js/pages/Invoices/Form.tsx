@@ -4,11 +4,11 @@ import { ItemLookupRecord, QuickAddItemModal } from '@/components/forms/QuickAdd
 import { RemoteLookupSelect } from '@/components/forms/RemoteLookupSelect';
 import { AppShell } from '@/components/layout/AppShell';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { calculateInvoicePreview, InvoiceLineDraft } from '@/lib/invoice';
+import { calculateInvoiceLinePreview, calculateInvoicePreview, InvoiceLineDraft } from '@/lib/invoice';
 import { paths } from '@/lib/paths';
 import { LookupOption, SharedProps, SimpleOption } from '@/types/shared';
 import { useForm, usePage } from '@inertiajs/react';
-import { Button, Card, Input, InputNumber, Select, Space, Table, Typography } from 'antd';
+import { Button, Card, Input, InputNumber, Select, Space, Table, Tag, Typography } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { KeyboardEvent as ReactKeyboardEvent, useMemo, useState } from 'react';
 
@@ -94,6 +94,8 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
     });
 
     const totals = useMemo(() => calculateInvoicePreview(data.lines as InvoiceLineDraft[]), [data.lines]);
+    const lineTotals = useMemo(() => data.lines.map((line) => calculateInvoiceLinePreview(line)), [data.lines]);
+    const activeLines = useMemo(() => data.lines.filter((line) => line.description.trim() || line.item_id).length, [data.lines]);
 
     const submit = (status: 'draft' | 'final') => {
         transform((currentData) => ({
@@ -117,16 +119,63 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
         put(paths.invoices.update(invoice.id as number), options);
     };
 
+    const addVoucherRow = () => {
+        setItemTargetRow(data.lines.length);
+        setData('lines', [...data.lines, blankLine()]);
+    };
+
+    const openQuickItemModal = () => {
+        const firstEmptyIndex = data.lines.findIndex((line) => !line.item_id && !line.description);
+        setItemTargetRow(firstEmptyIndex >= 0 ? firstEmptyIndex : data.lines.length);
+
+        if (firstEmptyIndex < 0) {
+            setData('lines', [...data.lines, blankLine()]);
+        }
+
+        setItemModalOpen(true);
+    };
+
+    const focusFirstVoucherCell = () => {
+        const target = document.querySelector<HTMLElement>('[data-invoice-cell="true"]');
+        target?.focus();
+    };
+
     useKeyboardShortcuts([
         {
             key: 's',
             ctrl: true,
+            allowInInputs: true,
             handler: () => submit('draft'),
         },
         {
             key: 'Enter',
             ctrl: true,
+            allowInInputs: true,
             handler: () => submit('final'),
+        },
+        {
+            key: 'c',
+            alt: true,
+            allowInInputs: true,
+            handler: () => setCustomerModalOpen(true),
+        },
+        {
+            key: 'i',
+            alt: true,
+            allowInInputs: true,
+            handler: () => openQuickItemModal(),
+        },
+        {
+            key: 'a',
+            alt: true,
+            allowInInputs: true,
+            handler: () => addVoucherRow(),
+        },
+        {
+            key: 'l',
+            alt: true,
+            allowInInputs: true,
+            handler: () => focusFirstVoucherCell(),
         },
     ]);
 
@@ -155,7 +204,12 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
 
     const columns: ColumnsType<(typeof data.lines)[number]> = [
         {
-            title: 'Item',
+            title: '#',
+            width: 48,
+            render: (_, __, index) => <span className="dp-mono text-xs text-slate-500">{index + 1}</span>,
+        },
+        {
+            title: 'Item / Search',
             width: 220,
             render: (_, line, index) => (
                 <RemoteLookupSelect<ItemLookupRecord>
@@ -192,21 +246,21 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
             ),
         },
         {
-            title: 'Description',
+            title: 'Particulars',
             render: (_, line, index) => (
                 <Input data-invoice-cell="true" value={line.description} onChange={(event) => updateLine(index, { description: event.target.value })} onKeyDown={handleGridKeyDown} />
             ),
         },
         {
             title: 'Unit',
-            width: 100,
+            width: 90,
             render: (_, line, index) => (
                 <Input data-invoice-cell="true" value={line.unit_name} onChange={(event) => updateLine(index, { unit_name: event.target.value })} onKeyDown={handleGridKeyDown} />
             ),
         },
         {
             title: 'Qty',
-            width: 110,
+            width: 94,
             render: (_, line, index) => (
                 <InputNumber
                     data-invoice-cell="true"
@@ -221,7 +275,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
         },
         {
             title: 'Rate',
-            width: 120,
+            width: 108,
             render: (_, line, index) => (
                 <InputNumber
                     data-invoice-cell="true"
@@ -236,7 +290,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
         },
         {
             title: 'Disc %',
-            width: 110,
+            width: 96,
             render: (_, line, index) => (
                 <InputNumber
                     data-invoice-cell="true"
@@ -252,7 +306,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
         },
         {
             title: 'Tax %',
-            width: 110,
+            width: 96,
             render: (_, line, index) => (
                 <InputNumber
                     data-invoice-cell="true"
@@ -267,8 +321,14 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
             ),
         },
         {
+            title: 'Line Total',
+            width: 116,
+            align: 'right',
+            render: (_, __, index) => lineTotals[index]?.total.toFixed(2) ?? '0.00',
+        },
+        {
             title: '',
-            width: 70,
+            width: 72,
             render: (_, __, index) => (
                 <Button
                     danger
@@ -278,7 +338,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         setData('lines', nextLines.length ? nextLines : [blankLine()]);
                     }}
                 >
-                    Remove
+                    Drop
                 </Button>
             ),
         },
@@ -286,8 +346,8 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
 
     return (
         <AppShell
-            title={mode === 'create' ? 'New Invoice' : `Edit ${invoice.invoice_number}`}
-            subtitle="Ctrl+S saves draft. Ctrl+Enter finalizes. Alt+N and Alt+P remain available globally."
+            title={mode === 'create' ? 'Sales Voucher' : `Edit ${invoice.invoice_number}`}
+            subtitle="Ctrl+S saves draft, Ctrl+Enter finalizes, Alt+C adds customer, Alt+I adds item, Alt+A adds row."
             activeKey="invoices"
             extra={
                 <Space wrap>
@@ -304,140 +364,157 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     <Button onClick={() => submit('draft')} loading={processing}>
                         Save Draft
                     </Button>
-                    <Button type="primary" onClick={() => submit('final')} loading={processing}>
-                        Finalize
+                    <Button data-testid="invoice-finalize" type="primary" onClick={() => submit('final')} loading={processing}>
+                        Finalize Voucher
                     </Button>
                 </Space>
             }
         >
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Card title="Voucher Header">
-                    <div className="grid gap-4 xl:grid-cols-4">
-                        <div className="xl:col-span-2">
-                            <Typography.Text strong>Customer</Typography.Text>
-                            <Space.Compact style={{ width: '100%', marginTop: 8 }}>
-                                <div style={{ flex: 1 }}>
-                                    <RemoteLookupSelect<CustomerLookupRecord>
-                                        endpoint={paths.lookups.customers}
-                                        value={customerOption}
-                                        onChange={(option) => {
-                                            setCustomerOption(option);
-                                            setData('customer_id', option?.record.id ?? null);
-                                        }}
-                                        mapOption={(record) => ({
-                                            value: Number(record.id),
-                                            label: record.name,
-                                            record,
-                                        })}
-                                        placeholder="Search customer"
-                                    />
+            <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                    <Card title="Voucher Header" className="dp-dense-card">
+                        <div className="grid gap-3 xl:grid-cols-6">
+                            <div className="xl:col-span-2">
+                                <Typography.Text strong>Party Account</Typography.Text>
+                                <Space.Compact style={{ width: '100%', marginTop: 8 }}>
+                                    <div style={{ flex: 1 }}>
+                                        <RemoteLookupSelect<CustomerLookupRecord>
+                                            endpoint={paths.lookups.customers}
+                                            value={customerOption}
+                                            onChange={(option) => {
+                                                setCustomerOption(option);
+                                                setData('customer_id', option?.record.id ?? null);
+                                            }}
+                                            mapOption={(record) => ({
+                                                value: Number(record.id),
+                                                label: record.name,
+                                                record,
+                                            })}
+                                            placeholder="Search customer"
+                                            testId="invoice-customer-select"
+                                        />
+                                    </div>
+                                    <Button data-testid="invoice-add-customer" onClick={() => setCustomerModalOpen(true)}>
+                                        + Customer
+                                    </Button>
+                                </Space.Compact>
+                                {errors.customer_id ? <Typography.Text type="danger">{errors.customer_id}</Typography.Text> : null}
+                            </div>
+
+                            <div>
+                                <Typography.Text strong>Issue Date</Typography.Text>
+                                <div style={{ marginTop: 8 }}>
+                                    <BsDateInput value={data.issue_date} onChange={(value) => setData('issue_date', value)} displayBsDates={useBsDates} placeholder="Issue date" />
                                 </div>
-                                <Button onClick={() => setCustomerModalOpen(true)}>+ Add Customer</Button>
-                            </Space.Compact>
-                            {errors.customer_id ? <Typography.Text type="danger">{errors.customer_id}</Typography.Text> : null}
-                        </div>
-
-                        <div>
-                            <Typography.Text strong>Issue Date</Typography.Text>
-                            <div style={{ marginTop: 8 }}>
-                                <BsDateInput value={data.issue_date} onChange={(value) => setData('issue_date', value)} displayBsDates={useBsDates} placeholder="Issue date" />
+                                {errors.issue_date ? <Typography.Text type="danger">{errors.issue_date}</Typography.Text> : null}
                             </div>
-                            {errors.issue_date ? <Typography.Text type="danger">{errors.issue_date}</Typography.Text> : null}
-                        </div>
 
-                        <div>
-                            <Typography.Text strong>Due Date</Typography.Text>
-                            <div style={{ marginTop: 8 }}>
-                                <BsDateInput value={data.due_date} onChange={(value) => setData('due_date', value)} displayBsDates={useBsDates} placeholder="Due date" />
+                            <div>
+                                <Typography.Text strong>Due Date</Typography.Text>
+                                <div style={{ marginTop: 8 }}>
+                                    <BsDateInput value={data.due_date} onChange={(value) => setData('due_date', value)} displayBsDates={useBsDates} placeholder="Due date" />
+                                </div>
+                                {errors.due_date ? <Typography.Text type="danger">{errors.due_date}</Typography.Text> : null}
                             </div>
-                            {errors.due_date ? <Typography.Text type="danger">{errors.due_date}</Typography.Text> : null}
-                        </div>
 
-                        <div>
-                            <Typography.Text strong>Status</Typography.Text>
-                            <Select
-                                className="w-full"
-                                style={{ marginTop: 8 }}
-                                value={data.status}
-                                onChange={(value) => setData('status', value)}
-                                options={[
-                                    { value: 'draft', label: 'Draft' },
-                                    { value: 'final', label: 'Final' },
-                                ]}
-                            />
-                        </div>
+                            <div>
+                                <Typography.Text strong>Voucher Status</Typography.Text>
+                                <Select
+                                    className="w-full"
+                                    style={{ marginTop: 8 }}
+                                    value={data.status}
+                                    onChange={(value) => setData('status', value)}
+                                    options={[
+                                        { value: 'draft', label: 'Draft' },
+                                        { value: 'final', label: 'Final' },
+                                    ]}
+                                />
+                            </div>
 
-                        <div className="xl:col-span-3">
-                            <Typography.Text strong>Reference Number</Typography.Text>
-                            <Input style={{ marginTop: 8 }} value={data.reference_number} onChange={(event) => setData('reference_number', event.target.value)} />
+                            <div>
+                                <Typography.Text strong>Reference</Typography.Text>
+                                <Input style={{ marginTop: 8 }} value={data.reference_number} onChange={(event) => setData('reference_number', event.target.value)} />
+                            </div>
                         </div>
-                    </div>
-                </Card>
+                    </Card>
 
-                <Card
-                    title="Line Items"
-                    extra={
-                        <Space>
-                            <Button
-                                onClick={() => {
-                                    setItemTargetRow(data.lines.length);
-                                    setData('lines', [...data.lines, blankLine()]);
-                                }}
-                            >
-                                Add Row
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    const firstEmptyIndex = data.lines.findIndex((line) => !line.item_id && !line.description);
-                                    setItemTargetRow(firstEmptyIndex >= 0 ? firstEmptyIndex : data.lines.length);
-                                    if (firstEmptyIndex < 0) {
-                                        setData('lines', [...data.lines, blankLine()]);
-                                    }
-                                    setItemModalOpen(true);
-                                }}
-                            >
-                                + Add Item
-                            </Button>
+                    <Card
+                        title="Voucher Lines"
+                        className="dp-dense-card"
+                        extra={
+                            <Space wrap>
+                                <Tag color="blue">{activeLines} active lines</Tag>
+                                <Button onClick={() => addVoucherRow()}>Add Row</Button>
+                                <Button data-testid="invoice-add-item" onClick={() => openQuickItemModal()}>
+                                    + Item
+                                </Button>
+                            </Space>
+                        }
+                    >
+                        <Table rowKey={(_, index) => index ?? 0} size="small" pagination={false} columns={columns} dataSource={data.lines} scroll={{ x: 1240 }} />
+                        {errors.lines ? <Typography.Text type="danger">{errors.lines}</Typography.Text> : null}
+                    </Card>
+
+                    <Card title="Narration / Notes" className="dp-dense-card">
+                        <Input.TextArea rows={4} value={data.notes} onChange={(event) => setData('notes', event.target.value)} placeholder="Narration, delivery note, or internal remarks" />
+                    </Card>
+                </Space>
+
+                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                    <Card title="Voucher Totals" className="dp-dense-card">
+                        <div className="space-y-3">
+                            <div className="dp-summary-row">
+                                <span>Subtotal</span>
+                                <strong>{totals.subtotal.toFixed(2)}</strong>
+                            </div>
+                            <div className="dp-summary-row">
+                                <span>Discount</span>
+                                <strong>{totals.discountTotal.toFixed(2)}</strong>
+                            </div>
+                            <div className="dp-summary-row">
+                                <span>Tax</span>
+                                <strong>{totals.taxTotal.toFixed(2)}</strong>
+                            </div>
+                            <div className="dp-summary-row dp-summary-row-total">
+                                <span>Total</span>
+                                <strong>{totals.total.toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card title="Voucher Context" className="dp-dense-card">
+                        <Space direction="vertical" size="small" style={{ display: 'flex' }}>
+                            <div className="dp-queue-card">
+                                <Typography.Text type="secondary">Customer</Typography.Text>
+                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
+                                    {customerOption?.record.name || 'Select party account'}
+                                </Typography.Title>
+                                {customerOption?.record.phone ? <Typography.Text type="secondary">{customerOption.record.phone}</Typography.Text> : null}
+                            </div>
+                            <div className="dp-queue-card">
+                                <Typography.Text type="secondary">Voucher Number</Typography.Text>
+                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
+                                    {invoice.invoice_number || 'Will be assigned on save'}
+                                </Typography.Title>
+                            </div>
+                            <div className="dp-queue-card">
+                                <Typography.Text type="secondary">Shortcut Strip</Typography.Text>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    <span className="dp-kbd">Ctrl+S</span>
+                                    <span className="dp-kbd">Ctrl+Enter</span>
+                                    <span className="dp-kbd">Alt+C</span>
+                                    <span className="dp-kbd">Alt+I</span>
+                                    <span className="dp-kbd">Alt+A</span>
+                                    <span className="dp-kbd">Alt+L</span>
+                                </div>
+                            </div>
+                            <Typography.Text type="secondary">
+                                Finalizing this voucher updates stock for inventory-tracked items and keeps balances ready for receipt entry.
+                            </Typography.Text>
                         </Space>
-                    }
-                >
-                    <Table rowKey={(_, index) => index ?? 0} size="small" pagination={false} columns={columns} dataSource={data.lines} scroll={{ x: 1100 }} />
-                    {errors.lines ? <Typography.Text type="danger">{errors.lines}</Typography.Text> : null}
-                </Card>
-
-                <Card title="Notes">
-                    <Input.TextArea rows={4} value={data.notes} onChange={(event) => setData('notes', event.target.value)} />
-                </Card>
-
-                <Card title="Preview Totals">
-                    <div className="grid gap-4 md:grid-cols-4">
-                        <Card size="small">
-                            <Typography.Text type="secondary">Subtotal</Typography.Text>
-                            <Typography.Title level={4} style={{ margin: '8px 0 0' }}>
-                                {totals.subtotal.toFixed(2)}
-                            </Typography.Title>
-                        </Card>
-                        <Card size="small">
-                            <Typography.Text type="secondary">Discount</Typography.Text>
-                            <Typography.Title level={4} style={{ margin: '8px 0 0' }}>
-                                {totals.discountTotal.toFixed(2)}
-                            </Typography.Title>
-                        </Card>
-                        <Card size="small">
-                            <Typography.Text type="secondary">Tax</Typography.Text>
-                            <Typography.Title level={4} style={{ margin: '8px 0 0' }}>
-                                {totals.taxTotal.toFixed(2)}
-                            </Typography.Title>
-                        </Card>
-                        <Card size="small">
-                            <Typography.Text type="secondary">Total</Typography.Text>
-                            <Typography.Title level={4} style={{ margin: '8px 0 0' }}>
-                                {totals.total.toFixed(2)}
-                            </Typography.Title>
-                        </Card>
-                    </div>
-                </Card>
-            </Space>
+                    </Card>
+                </Space>
+            </div>
 
             <QuickAddCustomerModal
                 open={customerModalOpen}

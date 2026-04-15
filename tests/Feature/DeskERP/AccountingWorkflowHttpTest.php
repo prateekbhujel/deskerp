@@ -108,4 +108,32 @@ class AccountingWorkflowHttpTest extends TestCase
         $this->assertSame((string) $invoice->balance_due, '13.00');
         $this->assertSame('partial', $invoice->payment_status);
     }
+
+    public function test_invoice_pdf_download_sanitizes_filename_when_invoice_number_contains_fiscal_year_slash(): void
+    {
+        $user = User::factory()->create();
+        $customer = Customer::query()->create(['name' => 'Kathmandu Traders', 'is_active' => true]);
+
+        $invoice = Invoice::query()->create([
+            'customer_id' => $customer->id,
+            'created_by_user_id' => $user->id,
+            'invoice_number' => 'INV-2082/83-00001',
+            'status' => 'final',
+            'payment_status' => 'unpaid',
+            'issue_date' => now()->toDateString(),
+            'customer_name' => $customer->name,
+            'subtotal' => '100.00',
+            'discount_total' => '0.00',
+            'tax_total' => '13.00',
+            'total' => '113.00',
+            'paid_total' => '0.00',
+            'balance_due' => '113.00',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('invoices.pdf', $invoice));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('INV-2082-83-00001.pdf', $response->headers->get('content-disposition', ''));
+    }
 }

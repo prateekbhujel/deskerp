@@ -78,7 +78,10 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                         <Descriptions.Item label="Status">
                             <Space wrap>
                                 <Tag color={invoice.status === 'final' ? 'blue' : 'default'}>{invoice.status}</Tag>
-                                <Tag color={invoice.payment_status === 'paid' ? 'green' : invoice.payment_status === 'partial' ? 'orange' : 'red'}>
+                                <Tag
+                                    data-testid="invoice-payment-status"
+                                    color={invoice.payment_status === 'paid' ? 'green' : invoice.payment_status === 'partial' ? 'orange' : 'red'}
+                                >
                                     {invoice.payment_status}
                                 </Tag>
                             </Space>
@@ -141,9 +144,15 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                         <Descriptions.Item label="Subtotal">{formatMoney(invoice.subtotal)}</Descriptions.Item>
                         <Descriptions.Item label="Discount">{formatMoney(invoice.discount_total)}</Descriptions.Item>
                         <Descriptions.Item label="Tax">{formatMoney(invoice.tax_total)}</Descriptions.Item>
-                        <Descriptions.Item label="Total">{formatMoney(invoice.total)}</Descriptions.Item>
-                        <Descriptions.Item label="Paid">{formatMoney(invoice.paid_total)}</Descriptions.Item>
-                        <Descriptions.Item label="Balance Due">{formatMoney(invoice.balance_due)}</Descriptions.Item>
+                        <Descriptions.Item label="Total">
+                            <span data-testid="invoice-total">{formatMoney(invoice.total)}</span>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Paid">
+                            <span data-testid="invoice-paid-total">{formatMoney(invoice.paid_total)}</span>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Balance Due">
+                            <span data-testid="invoice-balance-due">{formatMoney(invoice.balance_due)}</span>
+                        </Descriptions.Item>
                     </Descriptions>
                 </Card>
             </Space>

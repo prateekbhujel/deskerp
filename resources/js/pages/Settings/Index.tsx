@@ -52,7 +52,7 @@ export default function SettingsIndex({ settingsForm }: SettingsPageProps) {
             subtitle="Fiscal year, prefix numbering, and Nepali date display are managed here."
             activeKey="settings"
             extra={
-                <Button type="primary" loading={processing} onClick={submit}>
+                <Button data-testid="settings-save" type="primary" loading={processing} onClick={submit}>
                     Save Settings
                 </Button>
             }
@@ -76,13 +76,13 @@ export default function SettingsIndex({ settingsForm }: SettingsPageProps) {
                         <div className="grid gap-6 xl:grid-cols-2">
                             <Card size="small" title="Company">
                                 <Form.Item label="Company Name" help={errors.company_name} validateStatus={errors.company_name ? 'error' : ''}>
-                                    <Input value={data.company_name} onChange={(event) => setData('company_name', event.target.value)} />
+                                    <Input data-testid="settings-company-name" value={data.company_name} onChange={(event) => setData('company_name', event.target.value)} />
                                 </Form.Item>
                             </Card>
 
                             <Card size="small" title="Display">
                                 <Form.Item label="Display dates in Bikram Sambat">
-                                    <Switch checked={data.display_bs_dates} onChange={(checked) => setData('display_bs_dates', checked)} />
+                                    <Switch data-testid="settings-bs-switch" checked={data.display_bs_dates} onChange={(checked) => setData('display_bs_dates', checked)} />
                                 </Form.Item>
                                 <Typography.Text type="secondary">
                                     Stored dates remain Gregorian ISO values in SQLite, while the UI can display BS values.
@@ -91,7 +91,7 @@ export default function SettingsIndex({ settingsForm }: SettingsPageProps) {
 
                             <Card size="small" title="Fiscal Year">
                                 <Form.Item label="Fiscal Year Label" help={errors.fiscal_year_label} validateStatus={errors.fiscal_year_label ? 'error' : ''}>
-                                    <Input value={data.fiscal_year_label} onChange={(event) => setData('fiscal_year_label', event.target.value)} placeholder="2082/83" />
+                                    <Input data-testid="settings-fiscal-year-label" value={data.fiscal_year_label} onChange={(event) => setData('fiscal_year_label', event.target.value)} placeholder="2082/83" />
                                 </Form.Item>
                                 <Form.Item label="Start Date" help={errors.fiscal_year_start_date} validateStatus={errors.fiscal_year_start_date ? 'error' : ''}>
                                     <BsDateInput

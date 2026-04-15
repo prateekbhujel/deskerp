@@ -1,11 +1,11 @@
 import { BsDateInput } from '@/components/forms/BsDateInput';
 import { AppShell } from '@/components/layout/AppShell';
-import { formatDisplayDate, formatMoney } from '@/lib/format';
+import { coerceNumber, formatDisplayDate, formatMoney } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { PaginatedResponse, SharedProps } from '@/types/shared';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Button, Card, Input, Select, Space, Table } from 'antd';
-import { useState } from 'react';
+import { Button, Card, Input, Select, Space, Table, Tag, Typography } from 'antd';
+import { useMemo, useState } from 'react';
 
 interface InvoiceIndexProps {
     invoices: PaginatedResponse<{
@@ -32,6 +32,16 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
     const useBsDates = page.props.settings.displayBsDates;
     const [localFilters, setLocalFilters] = useState(filters);
 
+    const summary = useMemo(
+        () => ({
+            visibleRecords: invoices.data.length,
+            finalCount: invoices.data.filter((invoice) => invoice.status === 'final').length,
+            unpaidCount: invoices.data.filter((invoice) => invoice.payment_status !== 'paid').length,
+            pageBalance: invoices.data.reduce((carry, invoice) => carry + coerceNumber(invoice.balance_due), 0),
+        }),
+        [invoices.data],
+    );
+
     const applyFilters = (nextPage = 1) => {
         router.get(
             paths.invoices.index,
@@ -48,18 +58,50 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
 
     return (
         <AppShell
-            title="Invoices"
-            subtitle="Remote-search voucher entry keeps the list fast even when customer and item masters grow."
+            title="Sales Register"
+            subtitle="Dense invoice register with voucher-first filters, due tracking, and quick print access."
             activeKey="invoices"
             extra={
-                <Link href={paths.invoices.create}>
-                    <Button type="primary">New Invoice</Button>
-                </Link>
+                <Space wrap>
+                    <Link href={paths.reports.sales}>
+                        <Button>Sales Report</Button>
+                    </Link>
+                    <Link href={paths.invoices.create}>
+                        <Button type="primary">New Sales Voucher</Button>
+                    </Link>
+                </Space>
             }
         >
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Card>
-                    <div className="grid gap-4 lg:grid-cols-5">
+            <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                <div className="grid gap-3 lg:grid-cols-4">
+                    <Card className="dp-dense-stat">
+                        <Typography.Text type="secondary">Visible Records</Typography.Text>
+                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
+                            {summary.visibleRecords}
+                        </Typography.Title>
+                    </Card>
+                    <Card className="dp-dense-stat">
+                        <Typography.Text type="secondary">Final Vouchers</Typography.Text>
+                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
+                            {summary.finalCount}
+                        </Typography.Title>
+                    </Card>
+                    <Card className="dp-dense-stat">
+                        <Typography.Text type="secondary">Open Collections</Typography.Text>
+                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
+                            {summary.unpaidCount}
+                        </Typography.Title>
+                    </Card>
+                    <Card className="dp-dense-stat">
+                        <Typography.Text type="secondary">Page Balance Due</Typography.Text>
+                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
+                            {formatMoney(summary.pageBalance)}
+                        </Typography.Title>
+                    </Card>
+                </div>
+
+                <Card className="dp-dense-card">
+                    <div className="grid gap-3 xl:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]">
                         <Input
                             data-global-search="true"
                             placeholder="Search invoice, customer, reference"
@@ -69,7 +111,7 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
                         />
                         <Select
                             allowClear
-                            placeholder="Status"
+                            placeholder="Voucher status"
                             value={localFilters.status || undefined}
                             onChange={(value) => setLocalFilters((current) => ({ ...current, status: value ?? '' }))}
                             options={[
@@ -79,7 +121,7 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
                         />
                         <Select
                             allowClear
-                            placeholder="Payment Status"
+                            placeholder="Collection"
                             value={localFilters.payment_status || undefined}
                             onChange={(value) => setLocalFilters((current) => ({ ...current, payment_status: value ?? '' }))}
                             options={[
@@ -92,42 +134,42 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
                             value={localFilters.date_from}
                             onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))}
                             displayBsDates={useBsDates}
-                            placeholder="Date from"
+                            placeholder="From"
                         />
                         <BsDateInput
                             value={localFilters.date_to}
                             onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))}
                             displayBsDates={useBsDates}
-                            placeholder="Date to"
+                            placeholder="To"
                         />
+                        <Space>
+                            <Button type="primary" onClick={() => applyFilters()}>
+                                Apply
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    const cleared = {
+                                        q: '',
+                                        status: '',
+                                        payment_status: '',
+                                        date_from: '',
+                                        date_to: '',
+                                    };
+
+                                    setLocalFilters(cleared);
+                                    router.get(paths.invoices.index, {}, { replace: true });
+                                }}
+                            >
+                                Reset
+                            </Button>
+                        </Space>
                     </div>
-
-                    <Space style={{ marginTop: 16 }}>
-                        <Button type="primary" onClick={() => applyFilters()}>
-                            Apply Filters
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                const cleared = {
-                                    q: '',
-                                    status: '',
-                                    payment_status: '',
-                                    date_from: '',
-                                    date_to: '',
-                                };
-
-                                setLocalFilters(cleared);
-                                router.get(paths.invoices.index, {}, { replace: true });
-                            }}
-                        >
-                            Reset
-                        </Button>
-                    </Space>
                 </Card>
 
-                <Card>
+                <Card className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         dataSource={invoices.data}
                         pagination={{
                             current: invoices.meta.currentPage,
@@ -137,41 +179,49 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
                         }}
                         columns={[
                             {
-                                title: 'Invoice',
-                                dataIndex: 'invoice_number',
-                                render: (_, record) => <Link href={paths.invoices.show(record.id)}>{record.invoice_number}</Link>,
-                            },
-                            {
-                                title: 'Customer',
-                                dataIndex: 'customer_name',
+                                title: 'Voucher',
+                                render: (_, record) => (
+                                    <Space direction="vertical" size={0}>
+                                        <Link href={paths.invoices.show(record.id)}>{record.invoice_number}</Link>
+                                        <Typography.Text type="secondary">{record.customer_name}</Typography.Text>
+                                    </Space>
+                                ),
                             },
                             {
                                 title: 'Date',
+                                width: 118,
                                 dataIndex: 'issue_date',
                                 render: (value) => formatDisplayDate(value, useBsDates),
                             },
                             {
                                 title: 'Status',
-                                dataIndex: 'status',
-                            },
-                            {
-                                title: 'Payment',
-                                dataIndex: 'payment_status',
+                                width: 138,
+                                render: (_, record) => (
+                                    <Space wrap size={[4, 4]}>
+                                        <Tag color={record.status === 'final' ? 'blue' : 'default'}>{record.status}</Tag>
+                                        <Tag color={record.payment_status === 'paid' ? 'green' : record.payment_status === 'partial' ? 'orange' : 'red'}>
+                                            {record.payment_status}
+                                        </Tag>
+                                    </Space>
+                                ),
                             },
                             {
                                 title: 'Total',
+                                width: 120,
                                 align: 'right',
                                 render: (_, record) => formatMoney(record.total),
                             },
                             {
-                                title: 'Balance',
+                                title: 'Due',
+                                width: 120,
                                 align: 'right',
                                 render: (_, record) => formatMoney(record.balance_due),
                             },
                             {
                                 title: 'Actions',
+                                width: 150,
                                 render: (_, record) => (
-                                    <Space>
+                                    <Space size={10}>
                                         <Link href={paths.invoices.edit(record.id)}>Edit</Link>
                                         <a href={paths.invoices.print(record.id)} target="_blank" rel="noreferrer">
                                             Print

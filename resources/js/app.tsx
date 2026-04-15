@@ -2,11 +2,11 @@ import '../css/app.css';
 import 'antd/dist/reset.css';
 
 import { createInertiaApp } from '@inertiajs/react';
-import { Progress } from '@inertiajs/progress';
+import { InertiaProgress } from '@inertiajs/progress';
 import { App as AntApp, ConfigProvider } from 'antd';
 import { createRoot } from 'react-dom/client';
 
-Progress.init({
+InertiaProgress.init({
     color: '#0f766e',
     showSpinner: false,
 });

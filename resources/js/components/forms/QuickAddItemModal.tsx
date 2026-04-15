@@ -98,13 +98,13 @@ export function QuickAddItemModal({ open, onClose, onCreated, units, categories 
             >
                 <div className="grid gap-4 md:grid-cols-2">
                     <Form.Item label="Item Name" name="name" help={errors.name} validateStatus={errors.name ? 'error' : ''} rules={[{ required: true }]}>
-                        <Input />
+                        <Input data-testid="quick-item-name" />
                     </Form.Item>
                     <Form.Item label="SKU" name="sku" help={errors.sku} validateStatus={errors.sku ? 'error' : ''}>
-                        <Input />
+                        <Input data-testid="quick-item-sku" />
                     </Form.Item>
                     <Form.Item label="Unit" name="unit_id" help={errors.unit_id} validateStatus={errors.unit_id ? 'error' : ''} rules={[{ required: true }]}>
-                        <Select options={units.map((unit) => ({ value: unit.id, label: unit.name }))} />
+                        <Select data-testid="quick-item-unit" options={units.map((unit) => ({ value: unit.id, label: unit.name }))} />
                     </Form.Item>
                     <Form.Item label="Category" name="category_id" help={errors.category_id} validateStatus={errors.category_id ? 'error' : ''}>
                         <Select allowClear options={categories.map((category) => ({ value: category.id, label: category.name }))} />
@@ -118,16 +118,16 @@ export function QuickAddItemModal({ open, onClose, onCreated, units, categories 
                         />
                     </Form.Item>
                     <Form.Item label="Tax Rate %" name="tax_rate" help={errors.tax_rate} validateStatus={errors.tax_rate ? 'error' : ''}>
-                        <InputNumber className="w-full" min={0} step={0.01} />
+                        <InputNumber id="quick-item-tax-rate" data-testid="quick-item-tax-rate" className="w-full" min={0} step={0.01} />
                     </Form.Item>
                     <Form.Item label="Base Price" name="base_price" help={errors.base_price} validateStatus={errors.base_price ? 'error' : ''}>
-                        <InputNumber className="w-full" min={0} step={0.01} />
+                        <InputNumber id="quick-item-base-price" data-testid="quick-item-base-price" className="w-full" min={0} step={0.01} />
                     </Form.Item>
                     <Form.Item label="Selling Price" name="selling_price" help={errors.selling_price} validateStatus={errors.selling_price ? 'error' : ''} rules={[{ required: true }]}>
-                        <InputNumber className="w-full" min={0} step={0.01} />
+                        <InputNumber id="quick-item-selling-price" data-testid="quick-item-selling-price" className="w-full" min={0} step={0.01} />
                     </Form.Item>
                     <Form.Item label="Opening Stock" name="opening_stock" help={errors.opening_stock} validateStatus={errors.opening_stock ? 'error' : ''}>
-                        <InputNumber className="w-full" min={0} step={0.001} />
+                        <InputNumber id="quick-item-opening-stock" data-testid="quick-item-opening-stock" className="w-full" min={0} step={0.001} />
                     </Form.Item>
                     <Form.Item label="Reorder Level" name="reorder_level" help={errors.reorder_level} validateStatus={errors.reorder_level ? 'error' : ''}>
                         <InputNumber className="w-full" min={0} step={0.001} />

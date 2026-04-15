@@ -14,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -226,7 +227,7 @@ class InvoiceController extends Controller
 
         return Pdf::loadView('invoices.print', compact('invoice'))
             ->setPaper('a4')
-            ->download($invoice->invoice_number.'.pdf');
+            ->download($this->pdfFilename($invoice));
     }
 
     private function paginationMeta($paginator): array
@@ -252,6 +253,14 @@ class InvoiceController extends Controller
             'discount_percent' => '0',
             'tax_percent' => '0',
         ];
+    }
+
+    private function pdfFilename(Invoice $invoice): string
+    {
+        return Str::of($invoice->invoice_number ?: 'invoice')
+            ->replaceMatches('/[\/\\\\]+/', '-')
+            ->append('.pdf')
+            ->toString();
     }
 
     private function customerLookup(Customer $customer): array

@@ -67,7 +67,9 @@ export default function ItemsShow({ item }: ItemsShowProps) {
                         <Descriptions.Item label="Tax Rate">{formatMoney(item.tax_rate)}</Descriptions.Item>
                         <Descriptions.Item label="Base Price">{formatMoney(item.base_price)}</Descriptions.Item>
                         <Descriptions.Item label="Selling Price">{formatMoney(item.selling_price)}</Descriptions.Item>
-                        <Descriptions.Item label="Current Stock">{formatQuantity(item.current_stock)}</Descriptions.Item>
+                        <Descriptions.Item label="Current Stock">
+                            <span data-testid="item-current-stock">{formatQuantity(item.current_stock)}</span>
+                        </Descriptions.Item>
                         <Descriptions.Item label="Opening Stock">{formatQuantity(item.opening_stock)}</Descriptions.Item>
                         <Descriptions.Item label="Reorder Level">{formatQuantity(item.reorder_level)}</Descriptions.Item>
                         <Descriptions.Item label="Allow Discount">{item.allow_discount ? 'Yes' : 'No'}</Descriptions.Item>

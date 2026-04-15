@@ -87,16 +87,16 @@ export function QuickAddCustomerModal({ open, onClose, onCreated }: QuickAddCust
                 }}
             >
                 <Form.Item label="Name" name="name" help={errors.name} validateStatus={errors.name ? 'error' : ''} rules={[{ required: true }]}>
-                    <Input />
+                    <Input data-testid="quick-customer-name" />
                 </Form.Item>
                 <Form.Item label="Code" name="code" help={errors.code} validateStatus={errors.code ? 'error' : ''}>
-                    <Input />
+                    <Input data-testid="quick-customer-code" />
                 </Form.Item>
                 <Form.Item label="Phone" name="phone" help={errors.phone} validateStatus={errors.phone ? 'error' : ''}>
-                    <Input />
+                    <Input data-testid="quick-customer-phone" />
                 </Form.Item>
                 <Form.Item label="Email" name="email" help={errors.email} validateStatus={errors.email ? 'error' : ''}>
-                    <Input />
+                    <Input data-testid="quick-customer-email" />
                 </Form.Item>
                 <Form.Item label="Billing Address" name="billing_address" help={errors.billing_address} validateStatus={errors.billing_address ? 'error' : ''}>
                     <Input.TextArea rows={3} />
