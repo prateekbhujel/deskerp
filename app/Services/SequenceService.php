@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\DB;
 
 class SequenceService
 {
+    public function __construct(
+        private readonly SettingsService $settingsService,
+    ) {}
+
     public function nextInvoiceNumber(): string
     {
         return $this->nextFormattedNumber('invoice');
@@ -26,17 +30,24 @@ class SequenceService
             );
 
             $counterSetting = AppSetting::query()->firstOrCreate(
-                ['key' => "{$series}_next_number"],
+                ['key' => $this->settingsService->sequenceCounterKey($series)],
                 ['value' => '1'],
             );
 
             $number = (int) $counterSetting->value;
+            $fiscalYearLabel = trim((string) $this->settingsService->get('fiscal_year_label', ''));
 
             $counterSetting->update([
                 'value' => (string) ($number + 1),
             ]);
 
-            return sprintf('%s-%05d', strtoupper($prefixSetting->value ?? 'DOC'), $number);
+            $prefix = strtoupper($prefixSetting->value ?? 'DOC');
+
+            if ($fiscalYearLabel !== '') {
+                $prefix .= '-'.$fiscalYearLabel;
+            }
+
+            return sprintf('%s-%05d', $prefix, $number);
         });
     }
 }

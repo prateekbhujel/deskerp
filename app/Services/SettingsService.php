@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\AppSetting;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class SettingsService
 {
@@ -20,5 +22,76 @@ class SettingsService
     public function set(string $key, ?string $value): void
     {
         AppSetting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+    }
+
+    public function bool(string $key, bool $default = false): bool
+    {
+        $value = $this->get($key);
+
+        if ($value === null) {
+            return $default;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? $default;
+    }
+
+    public function uiSettings(): array
+    {
+        $fiscalYear = $this->fiscalYear();
+
+        return [
+            'companyName' => $this->get('company_name', 'DeskERP'),
+            'displayBsDates' => $this->bool('display_bs_dates', false),
+            'fiscalYear' => $fiscalYear,
+            'prefixes' => [
+                'invoice' => $this->get('invoice_prefix', 'INV'),
+                'paymentReceived' => $this->get('payment_received_prefix', 'REC'),
+                'paymentMade' => $this->get('payment_made_prefix', 'PAY'),
+            ],
+            'reportDefaults' => $this->defaultReportRange(),
+        ];
+    }
+
+    public function fiscalYear(): array
+    {
+        return [
+            'label' => $this->get('fiscal_year_label'),
+            'startDate' => $this->get('fiscal_year_start_date'),
+            'endDate' => $this->get('fiscal_year_end_date'),
+        ];
+    }
+
+    public function defaultReportRange(): array
+    {
+        $fiscalYear = $this->fiscalYear();
+
+        if ($fiscalYear['startDate'] && $fiscalYear['endDate']) {
+            return [
+                'dateFrom' => $fiscalYear['startDate'],
+                'dateTo' => $fiscalYear['endDate'],
+            ];
+        }
+
+        return [
+            'dateFrom' => Carbon::now()->startOfMonth()->toDateString(),
+            'dateTo' => Carbon::now()->toDateString(),
+        ];
+    }
+
+    public function sequenceCounterKey(string $series): string
+    {
+        $label = trim((string) $this->get('fiscal_year_label', ''));
+
+        if ($label === '') {
+            return "{$series}_next_number";
+        }
+
+        $sanitized = Str::of($label)
+            ->replaceMatches('/[^A-Za-z0-9]+/', '-')
+            ->trim('-')
+            ->lower()
+            ->value();
+
+        return "{$series}_next_number_{$sanitized}";
     }
 }
