@@ -55,8 +55,8 @@ export default function ItemsIndex({ items, filters, categories }: ItemsIndexPro
 
     return (
         <AppShell
-            title="Items and Pricing Register"
-            subtitle="Stock and service masters with selling rate, opening stock, and active price controls."
+            title="Items & Pricing"
+            subtitle="Item master with pricing, opening stock, and status filters."
             activeKey="items"
             extra={
                 <Space wrap>
@@ -64,7 +64,7 @@ export default function ItemsIndex({ items, filters, categories }: ItemsIndexPro
                         <Button>Inventory Report</Button>
                     </Link>
                     <Link href={paths.items.create}>
-                        <Button type="primary">New Item Master</Button>
+                        <Button type="primary">New Item</Button>
                     </Link>
                 </Space>
             }

@@ -14,20 +14,25 @@ class DashboardController extends Controller
 {
     public function __invoke(): Response
     {
-        $currentMonth = now()->startOfMonth();
+        $today = now()->toDateString();
 
         return Inertia::render('Dashboard', [
             'stats' => [
                 'customers' => Customer::query()->count(),
                 'suppliers' => Supplier::query()->count(),
                 'items' => Item::query()->count(),
-                'sales_this_month' => Invoice::query()
+                'today_sales' => Invoice::query()
                     ->where('status', 'final')
-                    ->whereDate('issue_date', '>=', $currentMonth)
+                    ->whereDate('issue_date', $today)
                     ->sum('total'),
-                'outstanding' => Invoice::query()
+                'pending_receivables' => Invoice::query()
                     ->where('status', 'final')
                     ->sum('balance_due'),
+                'low_stock_count' => Item::query()
+                    ->where('track_inventory', true)
+                    ->whereColumn('current_stock', '<=', 'reorder_level')
+                    ->where('reorder_level', '>', 0)
+                    ->count(),
             ],
             'recentInvoices' => Invoice::query()
                 ->with('customer')

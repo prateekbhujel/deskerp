@@ -83,18 +83,18 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
 
     return (
         <AppShell
-            title={mode === 'create' ? 'Item / Pricing Master' : `Edit ${item.name}`}
-            subtitle="Ctrl+S saves master, Alt+T adds a price tier, and opening stock stays tied to inventory rules."
+            title={mode === 'create' ? 'New Item' : `Edit ${item.name}`}
+            subtitle="Ctrl+S save item, Alt+T add pricing tier."
             activeKey="items"
             extra={
                 <Button type="primary" loading={processing} onClick={submit}>
-                    Save Master
+                    Save Item
                 </Button>
             }
         >
             <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Master Details" className="dp-dense-card">
+                    <Card title="Item Details" className="dp-dense-card">
                         <div className="grid gap-3 xl:grid-cols-3">
                             <div>
                                 <Typography.Text strong>SKU</Typography.Text>
@@ -254,7 +254,7 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
                 </Space>
 
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Master Context" className="dp-dense-card">
+                    <Card title="Summary" className="dp-dense-card">
                         <Space direction="vertical" size="small" style={{ display: 'flex' }}>
                             <div className="dp-queue-card">
                                 <Typography.Text type="secondary">Margin Spread</Typography.Text>
@@ -276,7 +276,7 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
                                 </div>
                             </div>
                             <Typography.Text type="secondary">
-                                Opening stock is applied only when inventory tracking is enabled, keeping the stock ledger aligned with item behavior.
+                                Opening stock is applied only when inventory tracking is enabled.
                             </Typography.Text>
                         </Space>
                     </Card>

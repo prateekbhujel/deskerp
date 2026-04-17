@@ -15,6 +15,9 @@ class UpdateSettingsRequest extends FormRequest
     {
         return [
             'company_name' => ['nullable', 'string', 'max:255'],
+            'business_address' => ['nullable', 'string', 'max:1000'],
+            'business_phone' => ['nullable', 'string', 'max:60'],
+            'business_email' => ['nullable', 'email', 'max:255'],
             'fiscal_year_label' => ['nullable', 'string', 'max:30'],
             'fiscal_year_start_date' => ['nullable', 'date'],
             'fiscal_year_end_date' => ['nullable', 'date', 'after_or_equal:fiscal_year_start_date'],

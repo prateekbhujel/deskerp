@@ -59,8 +59,8 @@ export default function PaymentsIndex({ payments, filters, methods }: PaymentsIn
 
     return (
         <AppShell
-            title="Receipts and Payments Register"
-            subtitle="Collection book with voucher filters, method tracking, and linked invoice review."
+            title="Payments Register"
+            subtitle="Receipts and payments with filters, methods, and invoice linkage."
             activeKey="payments"
             extra={
                 <Space wrap>
@@ -68,7 +68,7 @@ export default function PaymentsIndex({ payments, filters, methods }: PaymentsIn
                         <Button>Payment Report</Button>
                     </Link>
                     <Link href={paths.payments.createReceived}>
-                        <Button type="primary">New Receipt Voucher</Button>
+                        <Button type="primary">New Payment</Button>
                     </Link>
                 </Space>
             }

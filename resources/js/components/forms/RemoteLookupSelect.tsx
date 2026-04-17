@@ -5,7 +5,7 @@ import { Select, Spin } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
 import { useEffect, useMemo, useState } from 'react';
 
-interface RemoteLookupSelectProps<T extends Record<string, unknown>> {
+interface RemoteLookupSelectProps<T extends object> {
     endpoint: string;
     value?: LookupOption<T> | null;
     onChange: (value: LookupOption<T> | null) => void;
@@ -16,7 +16,7 @@ interface RemoteLookupSelectProps<T extends Record<string, unknown>> {
     testId?: string;
 }
 
-function mergeOptions<T extends Record<string, unknown>>(existing: LookupOption<T>[], incoming: LookupOption<T>[]) {
+function mergeOptions<T extends object>(existing: LookupOption<T>[], incoming: LookupOption<T>[]) {
     const map = new Map<number, LookupOption<T>>();
 
     [...existing, ...incoming].forEach((option) => {
@@ -26,7 +26,7 @@ function mergeOptions<T extends Record<string, unknown>>(existing: LookupOption<
     return [...map.values()];
 }
 
-export const RemoteLookupSelect = <T extends Record<string, unknown>,>({
+export const RemoteLookupSelect = <T extends object,>({
     endpoint,
     value,
     onChange,

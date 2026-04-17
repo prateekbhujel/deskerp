@@ -58,8 +58,8 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
 
     return (
         <AppShell
-            title="Sales Register"
-            subtitle="Dense invoice register with voucher-first filters, due tracking, and quick print access."
+            title="Invoice Register"
+            subtitle="Invoice list with status, receivable tracking, and print access."
             activeKey="invoices"
             extra={
                 <Space wrap>
@@ -67,7 +67,7 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
                         <Button>Sales Report</Button>
                     </Link>
                     <Link href={paths.invoices.create}>
-                        <Button type="primary">New Sales Voucher</Button>
+                        <Button type="primary">New Invoice</Button>
                     </Link>
                 </Space>
             }
@@ -81,7 +81,7 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
                         </Typography.Title>
                     </Card>
                     <Card className="dp-dense-stat">
-                        <Typography.Text type="secondary">Final Vouchers</Typography.Text>
+                        <Typography.Text type="secondary">Final Invoices</Typography.Text>
                         <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
                             {summary.finalCount}
                         </Typography.Title>

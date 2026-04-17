@@ -47,9 +47,10 @@ export default function SupplierLedger({ supplier, ledger, filters }: SupplierLe
     };
 
     return (
-        <AppShell title={`Supplier Ledger: ${supplier.name}`} subtitle="Running supplier balance with CSV/XLSX export." activeKey="reports">
+        <AppShell title={`Supplier Ledger: ${supplier.name}`} subtitle="Supplier statement with running balance and export." activeKey="reports">
             <Space direction="vertical" size="large" style={{ display: 'flex' }}>
                 <Card
+                    className="dp-dense-card"
                     extra={
                         <Space wrap>
                             <a href={withQuery(paths.reports.supplierLedger(supplier.id), { ...localFilters, export: 'csv' })}>
@@ -65,14 +66,15 @@ export default function SupplierLedger({ supplier, ledger, filters }: SupplierLe
                         <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} placeholder="Date from" />
                         <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} placeholder="Date to" />
                         <Button type="primary" onClick={() => applyFilters()}>
-                            Apply Filters
+                            Apply
                         </Button>
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="dp-dense-card">
                     <Table
                         rowKey={(record, index) => `${record.reference}-${index}`}
+                        size="small"
                         dataSource={ledger.data}
                         pagination={{
                             current: ledger.meta.currentPage,

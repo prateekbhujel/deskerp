@@ -41,6 +41,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appName' => config('app.name', 'DeskERP'),
+            'appVersion' => config('app.version', '0.0.0'),
             'auth' => [
                 'user' => fn (): ?array => $request->user()
                     ? [
@@ -56,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn (): ?string => $request->session()->get('error'),
             ],
             'settings' => fn (): array => $settings->uiSettings(),
+            'setup' => fn (): array => $settings->setupStatus(),
         ];
     }
 }

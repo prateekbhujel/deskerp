@@ -7,6 +7,11 @@ export interface AuthUser {
 
 export interface SharedSettings {
     companyName: string;
+    businessContact: {
+        address: string;
+        phone: string;
+        email: string;
+    };
     displayBsDates: boolean;
     fiscalYear: {
         label: string | null;
@@ -25,7 +30,9 @@ export interface SharedSettings {
 }
 
 export interface SharedProps {
+    [key: string]: unknown;
     appName: string;
+    appVersion: string;
     auth: {
         user: AuthUser | null;
     };
@@ -34,6 +41,10 @@ export interface SharedProps {
         error?: string | null;
     };
     settings: SharedSettings;
+    setup: {
+        complete: boolean;
+        missing: string[];
+    };
     errors: Record<string, string>;
 }
 

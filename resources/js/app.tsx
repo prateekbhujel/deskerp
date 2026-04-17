@@ -5,6 +5,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { InertiaProgress } from '@inertiajs/progress';
 import { App as AntApp, ConfigProvider } from 'antd';
 import { createRoot } from 'react-dom/client';
+import type { ComponentType } from 'react';
 
 InertiaProgress.init({
     color: '#0f766e',
@@ -13,14 +14,16 @@ InertiaProgress.init({
 
 createInertiaApp({
     resolve: async (name) => {
-        const pages = import.meta.glob('./pages/**/*.tsx');
-        const page = pages[`./pages/${name}.tsx`];
+        const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx');
+        const pageImport = pages[`./pages/${name}.tsx`];
 
-        if (!page) {
+        if (!pageImport) {
             throw new Error(`Inertia page not found: ${name}`);
         }
 
-        return page();
+        const page = await pageImport();
+
+        return page.default;
     },
     setup({ el, App, props }) {
         createRoot(el).render(
@@ -29,6 +32,8 @@ createInertiaApp({
                     token: {
                         colorPrimary: '#0f766e',
                         borderRadius: 8,
+                        fontFamily: "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
+                        fontSize: 13,
                     },
                 }}
             >

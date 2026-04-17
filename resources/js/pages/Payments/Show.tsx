@@ -29,7 +29,7 @@ export default function PaymentsShow({ payment }: PaymentsShowProps) {
     return (
         <AppShell
             title={payment.payment_number}
-            subtitle="Payment posting and outstanding-balance refresh are still handled by Laravel services."
+            subtitle="Payment details and invoice linkage."
             activeKey="payments"
             extra={
                 <Link href={paths.payments.edit(payment.id)}>
@@ -37,7 +37,7 @@ export default function PaymentsShow({ payment }: PaymentsShowProps) {
                 </Link>
             }
         >
-            <Card>
+            <Card className="dp-dense-card">
                 <Descriptions column={{ xs: 1, md: 2 }} bordered>
                     <Descriptions.Item label="Direction">{payment.direction}</Descriptions.Item>
                     <Descriptions.Item label="Amount">{formatMoney(payment.amount)}</Descriptions.Item>

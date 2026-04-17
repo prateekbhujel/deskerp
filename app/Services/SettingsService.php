@@ -41,6 +41,11 @@ class SettingsService
 
         return [
             'companyName' => $this->get('company_name', 'DeskERP'),
+            'businessContact' => [
+                'address' => $this->get('business_address', ''),
+                'phone' => $this->get('business_phone', ''),
+                'email' => $this->get('business_email', ''),
+            ],
             'displayBsDates' => $this->bool('display_bs_dates', false),
             'fiscalYear' => $fiscalYear,
             'prefixes' => [
@@ -49,6 +54,28 @@ class SettingsService
                 'paymentMade' => $this->get('payment_made_prefix', 'PAY'),
             ],
             'reportDefaults' => $this->defaultReportRange(),
+        ];
+    }
+
+    public function setupStatus(): array
+    {
+        $missing = [];
+
+        if (blank($this->get('company_name'))) {
+            $missing[] = 'Business name';
+        }
+
+        if (blank($this->get('fiscal_year_label'))) {
+            $missing[] = 'Fiscal year label';
+        }
+
+        if (blank($this->get('fiscal_year_start_date')) || blank($this->get('fiscal_year_end_date'))) {
+            $missing[] = 'Fiscal year date range';
+        }
+
+        return [
+            'complete' => empty($missing),
+            'missing' => $missing,
         ];
     }
 

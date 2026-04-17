@@ -34,7 +34,7 @@
                                         @endisset
                                     </div>
                                     <div class="truncate text-sm text-slate-500">
-                                        Dense local accounting workspace built for fast daily entry
+                                        Operations workspace
                                     </div>
                                 </div>
                             </div>
@@ -47,9 +47,9 @@
 
                         <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                             <div class="flex flex-wrap gap-2">
-                                <span class="dp-chip">Browser Mode</span>
+                                <span class="dp-chip">DeskERP</span>
                                 <span class="dp-chip">SQLite</span>
-                                <span class="dp-chip">Single Business</span>
+                                <span class="dp-chip">v{{ config('app.version', '0.0.0') }}</span>
                                 <span class="dp-chip">Session Auth</span>
                             </div>
 
