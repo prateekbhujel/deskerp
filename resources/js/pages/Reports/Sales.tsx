@@ -65,7 +65,7 @@ export default function SalesReport({ invoices, summary, filters, selected_custo
     };
 
     return (
-        <AppShell title="Sales Report" subtitle="Server-side filtered invoice register with CSV/XLSX export." activeKey="reports">
+        <AppShell title="Sales Report" subtitle="Filtered invoice summary with CSV/XLSX export." activeKey="reports">
             <Space direction="vertical" size="large" style={{ display: 'flex' }}>
                 <Space wrap size="large">
                     <Statistic title="Total Sales" value={formatMoney(summary.total_sales)} />
@@ -74,6 +74,7 @@ export default function SalesReport({ invoices, summary, filters, selected_custo
                 </Space>
 
                 <Card
+                    className="dp-dense-card"
                     extra={
                         <Space wrap>
                             <a href={withQuery(paths.reports.sales, { ...localFilters, export: 'csv' })}>
@@ -103,15 +104,17 @@ export default function SalesReport({ invoices, summary, filters, selected_custo
                         <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} placeholder="Date from" />
                         <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} placeholder="Date to" />
                         <Button type="primary" onClick={() => applyFilters()}>
-                            Apply Filters
+                            Apply
                         </Button>
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         dataSource={invoices.data}
+                        locale={{ emptyText: 'No sales data found for selected filters.' }}
                         pagination={{
                             current: invoices.meta.currentPage,
                             total: invoices.meta.total,

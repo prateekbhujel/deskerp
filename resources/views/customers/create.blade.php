@@ -6,7 +6,7 @@
     <section class="dp-section">
         <div>
             <h1 class="dp-title">Add Customer</h1>
-            <p class="dp-subtitle">Create a customer master that can be used in invoices and reports.</p>
+            <p class="dp-subtitle">Create a customer profile for invoices and payment tracking.</p>
         </div>
 
         <form method="POST" action="{{ route('customers.store') }}" class="dp-card p-5">

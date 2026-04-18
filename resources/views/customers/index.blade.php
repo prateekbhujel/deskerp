@@ -7,7 +7,7 @@
         <div class="dp-toolbar">
             <div>
                 <h1 class="dp-title">Customers</h1>
-                <p class="dp-subtitle">Manage customer masters, balances, and billing details.</p>
+                <p class="dp-subtitle">Customer list for invoicing, collections, and statements.</p>
             </div>
             <a href="{{ route('customers.create') }}" class="dp-btn-primary">Add Customer</a>
         </div>
@@ -69,7 +69,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-slate-500">No customers found.</td>
+                            <td colspan="6" class="text-center text-slate-500">
+                                No customers found. <a href="{{ route('customers.create') }}" class="font-medium text-teal-700 hover:text-teal-800">Add your first customer</a>.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>

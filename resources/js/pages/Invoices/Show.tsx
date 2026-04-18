@@ -53,7 +53,7 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
     return (
         <AppShell
             title={invoice.invoice_number}
-            subtitle="Printable invoice, PDF download, payment tracking, and stock-impacting finalization stay on the Laravel backend."
+            subtitle="Invoice details, payment history, and print/PDF actions."
             activeKey="invoices"
             extra={
                 <Space wrap>
@@ -70,7 +70,7 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
             }
         >
             <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Card>
+                <Card className="dp-dense-card">
                     <Descriptions column={{ xs: 1, md: 2, xl: 3 }} bordered>
                         <Descriptions.Item label="Customer">{invoice.customer_name}</Descriptions.Item>
                         <Descriptions.Item label="Issue Date">{formatDisplayDate(invoice.issue_date, useBsDates)}</Descriptions.Item>
@@ -95,11 +95,13 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                     </Descriptions>
                 </Card>
 
-                <Card title="Invoice Lines">
+                <Card title="Invoice Lines" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={invoice.lines}
+                        locale={{ emptyText: 'No line items found for this invoice.' }}
                         columns={[
                             { title: 'Description', dataIndex: 'description' },
                             { title: 'Unit', dataIndex: 'unit_name' },
@@ -112,11 +114,13 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                     />
                 </Card>
 
-                <Card title="Payments">
+                <Card title="Payments" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={invoice.payments}
+                        locale={{ emptyText: 'No linked payments yet. Record a receipt from Payments.' }}
                         columns={[
                             {
                                 title: 'Number',
@@ -139,7 +143,7 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                     />
                 </Card>
 
-                <Card title="Totals">
+                <Card title="Totals" className="dp-dense-card">
                     <Descriptions column={{ xs: 1, md: 2, xl: 3 }} bordered>
                         <Descriptions.Item label="Subtotal">{formatMoney(invoice.subtotal)}</Descriptions.Item>
                         <Descriptions.Item label="Discount">{formatMoney(invoice.discount_total)}</Descriptions.Item>

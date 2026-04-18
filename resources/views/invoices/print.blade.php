@@ -24,7 +24,7 @@
             <tr>
                 <td>
                     <div class="title">DeskERP Invoice</div>
-                    <div class="muted">Local-first accounting document</div>
+                    <div class="muted">{{ config('app.name', 'DeskERP') }}</div>
                 </td>
                 <td class="right">
                     <div><strong>{{ $invoice->invoice_number }}</strong></div>

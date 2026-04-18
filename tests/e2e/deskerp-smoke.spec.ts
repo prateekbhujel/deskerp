@@ -66,9 +66,9 @@ test('smoke checks invoicing, payments, inventory, settings, and exports', async
     await page.getByRole('button', { name: 'Log In' }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByTestId('app-shell-title')).toHaveText('Operations Desk');
+    await expect(page.getByTestId('app-shell-title')).toHaveText('Dashboard');
 
-    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.keyboard.press('Alt+s');
     await expect(page).toHaveURL(/\/settings$/);
 
     await page.getByTestId('settings-fiscal-year-label').fill(fiscalYearLabel);

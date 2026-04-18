@@ -19,6 +19,9 @@ class SettingsController extends Controller
         return Inertia::render('Settings/Index', [
             'settingsForm' => [
                 'companyName' => $this->settingsService->get('company_name', 'DeskERP'),
+                'businessAddress' => $this->settingsService->get('business_address', ''),
+                'businessPhone' => $this->settingsService->get('business_phone', ''),
+                'businessEmail' => $this->settingsService->get('business_email', ''),
                 'fiscalYearLabel' => $this->settingsService->get('fiscal_year_label', ''),
                 'fiscalYearStartDate' => $this->settingsService->get('fiscal_year_start_date', ''),
                 'fiscalYearEndDate' => $this->settingsService->get('fiscal_year_end_date', ''),
@@ -36,6 +39,9 @@ class SettingsController extends Controller
 
         $settings = [
             'company_name' => $validated['company_name'] ?? 'DeskERP',
+            'business_address' => $validated['business_address'] ?? '',
+            'business_phone' => $validated['business_phone'] ?? '',
+            'business_email' => $validated['business_email'] ?? '',
             'fiscal_year_label' => $validated['fiscal_year_label'] ?? '',
             'fiscal_year_start_date' => $validated['fiscal_year_start_date'] ?? '',
             'fiscal_year_end_date' => $validated['fiscal_year_end_date'] ?? '',

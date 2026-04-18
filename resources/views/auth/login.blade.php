@@ -1,9 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Sign in to DeskERP</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-500">
-            Use the seeded local admin account to access the accounting workspace.
-        </p>
+        <p class="mt-2 text-sm leading-6 text-slate-500">Version {{ config('app.version', '0.0.0') }} / Local admin access</p>
     </div>
 
     <x-auth-session-status class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" :status="session('status')" />
@@ -34,7 +32,7 @@
     </form>
 
     <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-        <div class="font-semibold text-slate-900">Default seeded admin</div>
+        <div class="font-semibold text-slate-900">Default Admin</div>
         <div class="mt-1">Email: <span class="font-medium">admin@deskerp.local</span></div>
         <div>Password: <span class="font-medium">deskerp123</span></div>
     </div>

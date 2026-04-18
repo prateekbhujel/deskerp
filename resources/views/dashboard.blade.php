@@ -17,7 +17,7 @@
             <div class="dp-card">
                 <div class="dp-panel-head">
                     <div>
-                        <h1 class="dp-title">Operations Desk</h1>
+                        <h1 class="dp-title">Dashboard</h1>
                         <p class="dp-subtitle">Use the quick entry lane to move through daily sales, receipts, stock, and reporting without leaving the keyboard.</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -52,7 +52,7 @@
                 <div class="mt-4 space-y-3">
                     <div class="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
                         <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Outstanding Sales</div>
-                        <div class="mt-2 text-2xl font-semibold text-slate-900">{{ number_format((float) $stats['outstanding'], 2) }}</div>
+                        <div class="mt-2 text-2xl font-semibold text-slate-900">{{ number_format((float) $stats['pending_receivables'], 2) }}</div>
                     </div>
                     <div class="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
                         <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Low Stock Items</div>
@@ -81,11 +81,11 @@
             </div>
             <div class="dp-stat">
                 <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Sales This Month</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ number_format((float) $stats['sales_this_month'], 2) }}</div>
+                <div class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ number_format((float) $stats['today_sales'], 2) }}</div>
             </div>
             <div class="dp-stat">
                 <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Balance Due</div>
-                <div class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ number_format((float) $stats['outstanding'], 2) }}</div>
+                <div class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ number_format((float) $stats['pending_receivables'], 2) }}</div>
             </div>
         </div>
 
@@ -190,7 +190,7 @@
                 <div class="dp-card p-5">
                     <h2 class="text-lg font-semibold tracking-tight text-slate-900">Outstanding sales balance</h2>
                     <div class="mt-3 text-4xl font-semibold tracking-tight text-slate-900">
-                        {{ number_format((float) $stats['outstanding'], 2) }}
+                        {{ number_format((float) $stats['pending_receivables'], 2) }}
                     </div>
                     <p class="mt-2 text-sm text-slate-500">Sum of final invoice balances that are still unpaid or partially paid.</p>
                     <div class="mt-5 flex flex-wrap gap-3">

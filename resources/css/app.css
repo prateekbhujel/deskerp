@@ -19,6 +19,7 @@
         @apply bg-slate-200 text-slate-900 antialiased;
         font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
         font-feature-settings: 'tnum' 1, 'ss01' 1;
+        overflow-x: hidden;
     }
 
     [x-cloak] {
@@ -252,5 +253,39 @@
 
     .dp-mono {
         font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    }
+
+    .dp-shell .ant-layout {
+        min-width: 0;
+    }
+
+    .dp-shell .ant-layout-content {
+        min-width: 0;
+    }
+
+    .dp-shell .ant-space {
+        min-width: 0;
+    }
+
+    .dp-shell .ant-table-wrapper {
+        width: 100%;
+    }
+
+    .dp-shell .ant-table-container {
+        border-inline-start: 0 !important;
+        border-inline-end: 0 !important;
+    }
+
+    .dp-shell .ant-card .ant-card-body {
+        padding: 14px;
+    }
+
+    .dp-shell .ant-card .ant-card-head {
+        min-height: 44px;
+        padding: 0 14px;
+    }
+
+    .dp-shell .ant-table-cell {
+        vertical-align: middle;
     }
 }

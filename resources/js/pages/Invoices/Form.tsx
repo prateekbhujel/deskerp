@@ -338,7 +338,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         setData('lines', nextLines.length ? nextLines : [blankLine()]);
                     }}
                 >
-                    Drop
+                    Remove
                 </Button>
             ),
         },
@@ -346,8 +346,8 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
 
     return (
         <AppShell
-            title={mode === 'create' ? 'Sales Voucher' : `Edit ${invoice.invoice_number}`}
-            subtitle="Ctrl+S saves draft, Ctrl+Enter finalizes, Alt+C adds customer, Alt+I adds item, Alt+A adds row."
+            title={mode === 'create' ? 'New Invoice' : `Edit ${invoice.invoice_number}`}
+            subtitle="Ctrl+S save draft, Ctrl+Enter finalize, Alt+C add customer, Alt+I add item."
             activeKey="invoices"
             extra={
                 <Space wrap>
@@ -365,14 +365,14 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         Save Draft
                     </Button>
                     <Button data-testid="invoice-finalize" type="primary" onClick={() => submit('final')} loading={processing}>
-                        Finalize Voucher
+                        Finalize Invoice
                     </Button>
                 </Space>
             }
         >
             <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Voucher Header" className="dp-dense-card">
+                    <Card title="Invoice Header" className="dp-dense-card">
                         <div className="grid gap-3 xl:grid-cols-6">
                             <div className="xl:col-span-2">
                                 <Typography.Text strong>Party Account</Typography.Text>
@@ -418,7 +418,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                             </div>
 
                             <div>
-                                <Typography.Text strong>Voucher Status</Typography.Text>
+                                <Typography.Text strong>Status</Typography.Text>
                                 <Select
                                     className="w-full"
                                     style={{ marginTop: 8 }}
@@ -439,7 +439,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     </Card>
 
                     <Card
-                        title="Voucher Lines"
+                        title="Invoice Lines"
                         className="dp-dense-card"
                         extra={
                             <Space wrap>
@@ -451,7 +451,15 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                             </Space>
                         }
                     >
-                        <Table rowKey={(_, index) => index ?? 0} size="small" pagination={false} columns={columns} dataSource={data.lines} scroll={{ x: 1240 }} />
+                        <Table
+                            rowKey={(_, index) => index ?? 0}
+                            size="small"
+                            pagination={false}
+                            columns={columns}
+                            dataSource={data.lines}
+                            locale={{ emptyText: 'No line items. Use Add Row or + Item to continue.' }}
+                            scroll={{ x: 1240 }}
+                        />
                         {errors.lines ? <Typography.Text type="danger">{errors.lines}</Typography.Text> : null}
                     </Card>
 
@@ -461,7 +469,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                 </Space>
 
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Voucher Totals" className="dp-dense-card">
+                    <Card title="Totals" className="dp-dense-card">
                         <div className="space-y-3">
                             <div className="dp-summary-row">
                                 <span>Subtotal</span>
@@ -482,7 +490,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         </div>
                     </Card>
 
-                    <Card title="Voucher Context" className="dp-dense-card">
+                    <Card title="Summary" className="dp-dense-card">
                         <Space direction="vertical" size="small" style={{ display: 'flex' }}>
                             <div className="dp-queue-card">
                                 <Typography.Text type="secondary">Customer</Typography.Text>
@@ -492,7 +500,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                                 {customerOption?.record.phone ? <Typography.Text type="secondary">{customerOption.record.phone}</Typography.Text> : null}
                             </div>
                             <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Voucher Number</Typography.Text>
+                                <Typography.Text type="secondary">Invoice Number</Typography.Text>
                                 <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
                                     {invoice.invoice_number || 'Will be assigned on save'}
                                 </Typography.Title>
@@ -509,7 +517,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                                 </div>
                             </div>
                             <Typography.Text type="secondary">
-                                Finalizing this voucher updates stock for inventory-tracked items and keeps balances ready for receipt entry.
+                                Finalizing updates stock for inventory-tracked items and keeps outstanding balances ready for payment entry.
                             </Typography.Text>
                         </Space>
                     </Card>

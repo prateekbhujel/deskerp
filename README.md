@@ -1,6 +1,6 @@
 # DeskERP
 
-DeskERP is a local-first accounting product for small business workflows. Laravel remains the backend source of truth for auth, invoicing, payments, inventory, reporting, PDF generation, and SQLite persistence, while the authenticated UI now runs through Inertia.js + React + TypeScript + Ant Design. Browser-mode development on macOS stays first-class, and the Electron wrapper in `desktop/` remains available for the later Windows desktop bundle.
+DeskERP is a local-first accounting product for small business workflows. Laravel remains the backend source of truth for auth, invoicing, payments, inventory, reporting, PDF generation, and SQLite persistence, while the authenticated UI runs through Inertia.js + React + TypeScript + Ant Design. Browser-mode development on macOS stays first-class, and the Electron wrapper in `desktop/` remains available for the later Windows desktop bundle.
 
 ## Current Stack
 
@@ -26,6 +26,7 @@ DeskERP is a local-first accounting product for small business workflows. Larave
 - Sales, payments, inventory, customer ledger, and supplier ledger reports
 - CSV and XLSX exports for reports
 - Fiscal year settings for report defaults and numbering
+- Setup wizard for business profile, fiscal year, and prefixes
 - Optional Bikram Sambat date display with AD storage in SQLite
 - Manual SQLite backup and restore
 
@@ -73,6 +74,7 @@ You can override the seeded admin in `.env`:
 DESKERP_ADMIN_NAME="DeskERP Admin"
 DESKERP_ADMIN_EMAIL="admin@deskerp.local"
 DESKERP_ADMIN_PASSWORD="deskerp123"
+APP_VERSION="0.2.0"
 ```
 
 ## React + Inertia Notes

@@ -26,6 +26,13 @@
 - Product name in UI/docs: DeskERP
 - Local-first MVP with SQLite
 - Browser mode first, desktop packaging later
-- Prioritize correctness and maintainability over visual polish
+- UI refreshed to a compact desktop accounting workspace (consistent sidebar, action bar, dense forms/tables, setup guidance).
 - Supplier ledger currently reflects opening balance and recorded payments made; purchase bill workflow is intentionally out of scope for this MVP pass.
 - Electron wrapper is prepared in `desktop/` for the final Windows bundling stage, but a packaged Windows executable was not produced in this macOS browser-first build pass.
+
+## 2026-04-17 UX/Flow Update
+- [x] Unified React app shell and page density across invoicing, payments, inventory, pricing, and reporting.
+- [x] Removed demo/marketing boilerplate texts from login/layout/dashboard areas.
+- [x] Added setup completeness hints (business/fiscal config) and app version display in login/app shell.
+- [x] Kept Laravel services/controllers as source of truth; no backend workflow rewrites.
+- [x] Verified with `php artisan test`, `npm run build`, `npx tsc --noEmit`, and Playwright smoke.

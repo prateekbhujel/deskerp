@@ -46,7 +46,7 @@ export default function ItemsShow({ item }: ItemsShowProps) {
     return (
         <AppShell
             title={item.name}
-            subtitle="Item masters retain pricing tiers, stock movement history, and inventory flags."
+            subtitle="Item profile, pricing tiers, and stock movement history."
             activeKey="items"
             extra={
                 <Link href={paths.items.edit(item.id)}>
@@ -55,7 +55,7 @@ export default function ItemsShow({ item }: ItemsShowProps) {
             }
         >
             <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Card>
+                <Card className="dp-dense-card">
                     <Descriptions column={{ xs: 1, md: 2, xl: 3 }} bordered>
                         <Descriptions.Item label="SKU">{item.sku || '-'}</Descriptions.Item>
                         <Descriptions.Item label="Type">{item.item_type}</Descriptions.Item>
@@ -64,7 +64,7 @@ export default function ItemsShow({ item }: ItemsShowProps) {
                         </Descriptions.Item>
                         <Descriptions.Item label="Unit">{item.unit_name || '-'}</Descriptions.Item>
                         <Descriptions.Item label="Category">{item.category_name || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="Tax Rate">{formatMoney(item.tax_rate)}</Descriptions.Item>
+                        <Descriptions.Item label="Tax Rate">{Number(item.tax_rate).toFixed(2)}%</Descriptions.Item>
                         <Descriptions.Item label="Base Price">{formatMoney(item.base_price)}</Descriptions.Item>
                         <Descriptions.Item label="Selling Price">{formatMoney(item.selling_price)}</Descriptions.Item>
                         <Descriptions.Item label="Current Stock">
@@ -80,11 +80,13 @@ export default function ItemsShow({ item }: ItemsShowProps) {
                     </Descriptions>
                 </Card>
 
-                <Card title="Price Tiers">
+                <Card title="Price Tiers" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={item.price_tiers}
+                        locale={{ emptyText: 'No price tiers configured for this item.' }}
                         columns={[
                             { title: 'Label', dataIndex: 'label' },
                             { title: 'Amount', align: 'right', render: (_, record) => formatMoney(record.amount) },
@@ -92,11 +94,13 @@ export default function ItemsShow({ item }: ItemsShowProps) {
                     />
                 </Card>
 
-                <Card title="Stock Movements">
+                <Card title="Stock Movements" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={item.stock_movements}
+                        locale={{ emptyText: 'No stock movement entries yet.' }}
                         columns={[
                             {
                                 title: 'Date',

@@ -59,8 +59,8 @@ export default function PaymentsIndex({ payments, filters, methods }: PaymentsIn
 
     return (
         <AppShell
-            title="Receipts and Payments Register"
-            subtitle="Collection book with voucher filters, method tracking, and linked invoice review."
+            title="Payments Register"
+            subtitle="Receipts and payments with filters, methods, and invoice linkage."
             activeKey="payments"
             extra={
                 <Space wrap>
@@ -68,7 +68,10 @@ export default function PaymentsIndex({ payments, filters, methods }: PaymentsIn
                         <Button>Payment Report</Button>
                     </Link>
                     <Link href={paths.payments.createReceived}>
-                        <Button type="primary">New Receipt Voucher</Button>
+                        <Button type="primary">Receive Payment</Button>
+                    </Link>
+                    <Link href={paths.payments.createMade}>
+                        <Button>Make Payment</Button>
                     </Link>
                 </Space>
             }
@@ -171,6 +174,7 @@ export default function PaymentsIndex({ payments, filters, methods }: PaymentsIn
                         rowKey="id"
                         size="small"
                         dataSource={payments.data}
+                        locale={{ emptyText: 'No payment entries found. Use Receive Payment or Make Payment.' }}
                         pagination={{
                             current: payments.meta.currentPage,
                             total: payments.meta.total,

@@ -15,7 +15,7 @@
             ['label' => 'Payments', 'route' => 'payments.index', 'active' => request()->routeIs('payments.*')],
         ],
         'Reports' => [
-            ['label' => 'Report Center', 'route' => 'reports.index', 'active' => request()->routeIs('reports.*')],
+            ['label' => 'Reports', 'route' => 'reports.index', 'active' => request()->routeIs('reports.*')],
         ],
         'System' => [
             ['label' => 'Backup / Restore', 'route' => 'backups.index', 'active' => request()->routeIs('backups.*')],
@@ -25,7 +25,7 @@
 
     $quickActions = [
         ['label' => 'Sales Invoice', 'route' => 'invoices.create', 'params' => [], 'hotkey' => 'Alt+N', 'primary' => true],
-        ['label' => 'Receipt Entry', 'route' => 'payments.create', 'params' => ['direction' => 'received'], 'hotkey' => 'Alt+R'],
+        ['label' => 'Payment Entry', 'route' => 'payments.create', 'params' => ['direction' => 'received'], 'hotkey' => 'Alt+P'],
         ['label' => 'Item Master', 'route' => 'items.create', 'params' => [], 'hotkey' => 'Alt+I'],
     ];
 @endphp
@@ -54,7 +54,7 @@
             <div class="mt-1 text-[11px] uppercase tracking-[0.24em] text-slate-400">{{ auth()->user()?->role ?? 'admin' }}</div>
             <div class="mt-3 flex flex-wrap gap-2">
                 <span class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-slate-300">SQLite</span>
-                <span class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-slate-300">Local</span>
+                <span class="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-slate-300">v{{ config('app.version', '0.0.0') }}</span>
             </div>
         </div>
 
@@ -94,7 +94,7 @@
 
         <div class="border-t border-slate-800 p-4">
             <div class="mb-3 rounded-md border border-slate-800 bg-slate-900 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">
-                DeskERP local workspace
+                DeskERP
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

@@ -3,7 +3,7 @@ import { formatDisplayDate, formatMoney, formatQuantity } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { SharedProps } from '@/types/shared';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Button, Card, Col, Row, Space, Statistic, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Col, Row, Space, Statistic, Table, Tag, Typography } from 'antd';
 import { useMemo } from 'react';
 
 interface DashboardProps {
@@ -11,8 +11,9 @@ interface DashboardProps {
         customers: number;
         suppliers: number;
         items: number;
-        sales_this_month: number;
-        outstanding: number;
+        today_sales: number;
+        pending_receivables: number;
+        low_stock_count: number;
     };
     recentInvoices: Array<{
         id: number;
@@ -45,238 +46,165 @@ export default function Dashboard({ stats, recentInvoices, recentPayments, lowSt
     const page = usePage<SharedProps>();
     const useBsDates = page.props.settings.displayBsDates;
 
-    const dayBook = useMemo(
-        () =>
-            [
-                ...recentInvoices.map((invoice) => ({
-                    id: `invoice-${invoice.id}`,
-                    date: invoice.issue_date,
-                    reference: invoice.invoice_number,
-                    narration: invoice.customer_name,
-                    type: 'Sales',
-                    amount: invoice.total,
-                    href: paths.invoices.show(invoice.id),
-                    status: invoice.payment_status,
-                })),
-                ...recentPayments.map((payment) => ({
-                    id: `payment-${payment.id}`,
-                    date: payment.payment_date,
-                    reference: payment.payment_number,
-                    narration: payment.customer?.name ?? payment.supplier?.name ?? '-',
-                    type: payment.direction === 'received' ? 'Receipt' : 'Payment',
-                    amount: payment.amount,
-                    href: paths.payments.show(payment.id),
-                    status: payment.direction,
-                })),
-            ]
-                .sort((left, right) => String(right.date).localeCompare(String(left.date)))
-                .slice(0, 10),
-        [recentInvoices, recentPayments],
-    );
+    const setupMissing = useMemo(() => page.props.setup.missing.join(', '), [page.props.setup.missing]);
 
     return (
         <AppShell
-            title="Operations Desk"
-            subtitle="Voucher-first home screen for sales, receipts, stock watch, and book navigation."
+            title="Dashboard"
+            subtitle="Daily operations, receivables, stock alerts, and quick voucher entry."
             activeKey="dashboard"
             extra={
                 <Space wrap>
                     <Link href={paths.invoices.create}>
-                        <Button type="primary">Sales Voucher</Button>
+                        <Button type="primary">New Invoice</Button>
                     </Link>
                     <Link href={paths.payments.createReceived}>
-                        <Button>Receipt Voucher</Button>
+                        <Button>Receive Payment</Button>
+                    </Link>
+                    <Link href={paths.items.create}>
+                        <Button>Add Item</Button>
+                    </Link>
+                    <Link href={paths.reports.index}>
+                        <Button>Reports</Button>
                     </Link>
                 </Space>
             }
         >
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Row gutter={[12, 12]}>
-                    <Col xs={24} lg={10}>
-                        <Card title="Voucher Gateway" className="dp-dense-card">
-                            <div className="grid gap-3 md:grid-cols-2">
-                                <button className="dp-command-card" onClick={() => router.visit(paths.invoices.create)} type="button">
-                                    <span>
-                                        <strong>Sales Voucher</strong>
-                                        <small>Create invoice, finalize stock, print or PDF.</small>
-                                    </span>
-                                    <span className="dp-kbd">Alt+N</span>
-                                </button>
-                                <button className="dp-command-card" onClick={() => router.visit(paths.payments.createReceived)} type="button">
-                                    <span>
-                                        <strong>Receipt Voucher</strong>
-                                        <small>Post customer receipt against open invoice.</small>
-                                    </span>
-                                    <span className="dp-kbd">Alt+P</span>
-                                </button>
-                                <button className="dp-command-card" onClick={() => router.visit(paths.items.create)} type="button">
-                                    <span>
-                                        <strong>Item / Pricing</strong>
-                                        <small>Maintain stock item, rates, and price tiers.</small>
-                                    </span>
-                                    <span className="dp-kbd">Alt+M</span>
-                                </button>
-                                <button className="dp-command-card" onClick={() => router.visit(paths.reports.index)} type="button">
-                                    <span>
-                                        <strong>Books & Reports</strong>
-                                        <small>Sales, payments, inventory, and ledgers.</small>
-                                    </span>
-                                    <span className="dp-kbd">Alt+R</span>
-                                </button>
-                            </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} lg={14}>
-                        <Row gutter={[12, 12]}>
-                            <Col xs={12} xl={6}>
-                                <Card className="dp-dense-stat">
-                                    <Statistic title="Customers" value={stats.customers} />
-                                </Card>
-                            </Col>
-                            <Col xs={12} xl={6}>
-                                <Card className="dp-dense-stat">
-                                    <Statistic title="Suppliers" value={stats.suppliers} />
-                                </Card>
-                            </Col>
-                            <Col xs={12} xl={6}>
-                                <Card className="dp-dense-stat">
-                                    <Statistic title="Items" value={stats.items} />
-                                </Card>
-                            </Col>
-                            <Col xs={12} xl={6}>
-                                <Card className="dp-dense-stat">
-                                    <Statistic title="Month Sales" value={formatMoney(stats.sales_this_month)} />
-                                </Card>
-                            </Col>
-                            <Col xs={24}>
-                                <Card title="Work Queue" className="dp-dense-card">
-                                    <div className="grid gap-3 md:grid-cols-3">
-                                        <div className="dp-queue-card">
-                                            <Typography.Text type="secondary">Outstanding Sales</Typography.Text>
-                                            <Typography.Title level={3} style={{ margin: '6px 0 0' }}>
-                                                {formatMoney(stats.outstanding)}
-                                            </Typography.Title>
-                                        </div>
-                                        <div className="dp-queue-card">
-                                            <Typography.Text type="secondary">Low Stock Alerts</Typography.Text>
-                                            <Typography.Title level={3} style={{ margin: '6px 0 0' }}>
-                                                {lowStockItems.length}
-                                            </Typography.Title>
-                                        </div>
-                                        <div className="dp-queue-card">
-                                            <Typography.Text type="secondary">Report Range</Typography.Text>
-                                            <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                                {page.props.settings.fiscalYear.label ? `FY ${page.props.settings.fiscalYear.label}` : 'Current Month'}
-                                            </Typography.Title>
-                                        </div>
-                                    </div>
-                                </Card>
-                            </Col>
-                        </Row>
-                    </Col>
-                </Row>
+            <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                {!page.props.setup.complete ? (
+                    <Alert
+                        type="warning"
+                        showIcon
+                        message="Setup Required"
+                        description={
+                            <Space direction="vertical" size={4}>
+                                <Typography.Text>Complete settings before regular billing: {setupMissing}.</Typography.Text>
+                                <Link href={paths.settings}>Open Settings</Link>
+                            </Space>
+                        }
+                    />
+                ) : null}
 
                 <Row gutter={[12, 12]}>
-                    <Col xs={24} xl={11}>
-                        <Card
-                            title="Registers"
-                            extra={
-                                <Space size={8}>
-                                    <span className="dp-kbd">Alt+V</span>
-                                    <Link href={paths.invoices.index}>Open Sales Register</Link>
-                                </Space>
-                            }
-                            className="dp-dense-card"
-                        >
-                            <div className="space-y-2">
-                                <button className="dp-register-link" onClick={() => router.visit(paths.invoices.index)} type="button">
-                                    <span>
-                                        <strong>Sales Register</strong>
-                                        <small>Review draft/final invoices, dues, and print actions.</small>
-                                    </span>
-                                    <span>{recentInvoices.length} recent</span>
-                                </button>
-                                <button className="dp-register-link" onClick={() => router.visit(paths.payments.index)} type="button">
-                                    <span>
-                                        <strong>Receipt / Payment Register</strong>
-                                        <small>Collections, methods, references, and linked invoices.</small>
-                                    </span>
-                                    <span>{recentPayments.length} recent</span>
-                                </button>
-                                <button className="dp-register-link" onClick={() => router.visit(paths.items.index)} type="button">
-                                    <span>
-                                        <strong>Stock Items Register</strong>
-                                        <small>Item master, prices, opening stock, and valuation view.</small>
-                                    </span>
-                                    <span>{stats.items} items</span>
-                                </button>
-                            </div>
+                    <Col xs={12} xl={4}>
+                        <Card className="dp-dense-stat">
+                            <Statistic title="Today Sales" value={formatMoney(stats.today_sales)} />
                         </Card>
                     </Col>
-
-                    <Col xs={24} xl={13}>
-                        <Card
-                            title="Books and Statements"
-                            extra={
-                                <Space size={8}>
-                                    <span className="dp-kbd">Alt+R</span>
-                                    <Link href={paths.reports.index}>Open Report Centre</Link>
-                                </Space>
-                            }
-                            className="dp-dense-card"
-                        >
-                            <div className="grid gap-2 md:grid-cols-2">
-                                <button className="dp-report-link" onClick={() => router.visit(paths.reports.sales)} type="button">
-                                    Sales Report
-                                </button>
-                                <button className="dp-report-link" onClick={() => router.visit(paths.reports.payments)} type="button">
-                                    Payment Report
-                                </button>
-                                <button className="dp-report-link" onClick={() => router.visit(paths.reports.inventory)} type="button">
-                                    Inventory Report
-                                </button>
-                                <button className="dp-report-link" onClick={() => router.visit(paths.reports.index)} type="button">
-                                    Ledger Selection
-                                </button>
-                            </div>
+                    <Col xs={12} xl={4}>
+                        <Card className="dp-dense-stat">
+                            <Statistic title="Receivables" value={formatMoney(stats.pending_receivables)} />
+                        </Card>
+                    </Col>
+                    <Col xs={12} xl={4}>
+                        <Card className="dp-dense-stat">
+                            <Statistic title="Low Stock" value={stats.low_stock_count} />
+                        </Card>
+                    </Col>
+                    <Col xs={12} xl={4}>
+                        <Card className="dp-dense-stat">
+                            <Statistic title="Items" value={stats.items} />
+                        </Card>
+                    </Col>
+                    <Col xs={12} xl={4}>
+                        <Card className="dp-dense-stat">
+                            <Statistic title="Customers" value={stats.customers} />
+                        </Card>
+                    </Col>
+                    <Col xs={12} xl={4}>
+                        <Card className="dp-dense-stat">
+                            <Statistic title="Suppliers" value={stats.suppliers} />
                         </Card>
                     </Col>
                 </Row>
 
                 <Row gutter={[12, 12]}>
-                    <Col xs={24} xl={15}>
-                        <Card title="Day Book" className="dp-dense-card">
+                    <Col xs={24} xl={14}>
+                        <Card
+                            title="Recent Invoices"
+                            className="dp-dense-card"
+                            extra={
+                                <Link href={paths.invoices.index}>
+                                    <Button size="small">View All</Button>
+                                </Link>
+                            }
+                        >
                             <Table
                                 rowKey="id"
                                 size="small"
                                 pagination={false}
-                                dataSource={dayBook}
+                                locale={{ emptyText: 'No invoices yet.' }}
+                                dataSource={recentInvoices}
                                 columns={[
                                     {
-                                        title: 'Date',
-                                        dataIndex: 'date',
-                                        width: 118,
-                                        render: (value) => formatDisplayDate(value, useBsDates),
-                                    },
-                                    {
-                                        title: 'Particulars',
+                                        title: 'Invoice',
                                         render: (_, record) => (
                                             <Space direction="vertical" size={0}>
-                                                <Link href={record.href}>{record.reference}</Link>
-                                                <Typography.Text type="secondary">{record.narration}</Typography.Text>
+                                                <Link href={paths.invoices.show(record.id)}>{record.invoice_number}</Link>
+                                                <Typography.Text type="secondary">{record.customer_name}</Typography.Text>
+                                            </Space>
+                                        ),
+                                    },
+                                    {
+                                        title: 'Date',
+                                        width: 128,
+                                        render: (_, record) => formatDisplayDate(record.issue_date, useBsDates),
+                                    },
+                                    {
+                                        title: 'Status',
+                                        width: 158,
+                                        render: (_, record) => (
+                                            <Space wrap size={[4, 4]}>
+                                                <Tag color={record.status === 'final' ? 'blue' : 'default'}>{record.status}</Tag>
+                                                <Tag color={record.payment_status === 'paid' ? 'green' : record.payment_status === 'partial' ? 'orange' : 'red'}>
+                                                    {record.payment_status}
+                                                </Tag>
+                                            </Space>
+                                        ),
+                                    },
+                                    {
+                                        title: 'Total',
+                                        width: 126,
+                                        align: 'right',
+                                        render: (_, record) => formatMoney(record.total),
+                                    },
+                                ]}
+                            />
+                        </Card>
+                    </Col>
+
+                    <Col xs={24} xl={10}>
+                        <Card
+                            title="Recent Payments"
+                            className="dp-dense-card"
+                            extra={
+                                <Link href={paths.payments.index}>
+                                    <Button size="small">View All</Button>
+                                </Link>
+                            }
+                        >
+                            <Table
+                                rowKey="id"
+                                size="small"
+                                pagination={false}
+                                locale={{ emptyText: 'No payments yet.' }}
+                                dataSource={recentPayments}
+                                columns={[
+                                    {
+                                        title: 'Voucher',
+                                        render: (_, record) => (
+                                            <Space direction="vertical" size={0}>
+                                                <Link href={paths.payments.show(record.id)}>{record.payment_number}</Link>
+                                                <Typography.Text type="secondary">
+                                                    {record.customer?.name ?? record.supplier?.name ?? '-'}
+                                                </Typography.Text>
                                             </Space>
                                         ),
                                     },
                                     {
                                         title: 'Type',
-                                        width: 110,
-                                        render: (_, record) => <Tag color={record.type === 'Sales' ? 'blue' : record.type === 'Receipt' ? 'green' : 'orange'}>{record.type}</Tag>,
-                                    },
-                                    {
-                                        title: 'Status',
-                                        width: 110,
-                                        render: (_, record) => <Typography.Text type="secondary">{record.status}</Typography.Text>,
+                                        width: 114,
+                                        render: (_, record) => <Tag color={record.direction === 'received' ? 'green' : 'orange'}>{record.direction}</Tag>,
                                     },
                                     {
                                         title: 'Amount',
@@ -288,27 +216,70 @@ export default function Dashboard({ stats, recentInvoices, recentPayments, lowSt
                             />
                         </Card>
                     </Col>
+                </Row>
 
-                    <Col xs={24} xl={9}>
-                        <Card title="Attention Required" className="dp-dense-card">
+                <Row gutter={[12, 12]}>
+                    <Col xs={24} xl={14}>
+                        <Card title="Quick Actions" className="dp-dense-card">
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <button className="dp-command-card" onClick={() => router.visit(paths.invoices.create)} type="button">
+                                    <span>
+                                        <strong>New Invoice</strong>
+                                        <small>Create and finalize a sales invoice.</small>
+                                    </span>
+                                    <span className="dp-kbd">Alt+N</span>
+                                </button>
+                                <button className="dp-command-card" onClick={() => router.visit(paths.payments.createReceived)} type="button">
+                                    <span>
+                                        <strong>Receive Payment</strong>
+                                        <small>Record receipt and link outstanding invoice.</small>
+                                    </span>
+                                    <span className="dp-kbd">Alt+P</span>
+                                </button>
+                                <button className="dp-command-card" onClick={() => router.visit(paths.items.create)} type="button">
+                                    <span>
+                                        <strong>Add Item</strong>
+                                        <small>Update item pricing and opening stock.</small>
+                                    </span>
+                                    <span className="dp-kbd">Alt+M</span>
+                                </button>
+                                <button className="dp-command-card" onClick={() => router.visit(paths.reports.index)} type="button">
+                                    <span>
+                                        <strong>Open Reports</strong>
+                                        <small>Sales, payment, inventory, and ledger exports.</small>
+                                    </span>
+                                    <span className="dp-kbd">Alt+R</span>
+                                </button>
+                            </div>
+                        </Card>
+                    </Col>
+                    <Col xs={24} xl={10}>
+                        <Card title="Low Stock Items" className="dp-dense-card">
                             <Table
                                 rowKey="id"
                                 size="small"
                                 pagination={false}
-                                dataSource={lowStockItems}
                                 locale={{ emptyText: 'No low stock items.' }}
+                                dataSource={lowStockItems}
                                 columns={[
                                     {
                                         title: 'Item',
-                                        render: (_, record) => <Link href={paths.items.show(record.id)}>{record.name}</Link>,
+                                        render: (_, record) => (
+                                            <Space direction="vertical" size={0}>
+                                                <Link href={paths.items.show(record.id)}>{record.name}</Link>
+                                                <Typography.Text type="secondary">{record.sku || '-'}</Typography.Text>
+                                            </Space>
+                                        ),
                                     },
                                     {
                                         title: 'Current',
+                                        width: 110,
                                         align: 'right',
                                         render: (_, record) => formatQuantity(record.current_stock),
                                     },
                                     {
                                         title: 'Reorder',
+                                        width: 110,
                                         align: 'right',
                                         render: (_, record) => formatQuantity(record.reorder_level),
                                     },

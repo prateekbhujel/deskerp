@@ -51,7 +51,7 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
     };
 
     return (
-        <AppShell title="Payment Report" subtitle="Receipts and payments with filter-aware CSV/XLSX exports." activeKey="reports">
+        <AppShell title="Payment Report" subtitle="Receipts and payments with CSV/XLSX export." activeKey="reports">
             <Space direction="vertical" size="large" style={{ display: 'flex' }}>
                 <Space wrap size="large">
                     <Statistic title="Received" value={formatMoney(summary.received)} />
@@ -59,6 +59,7 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
                 </Space>
 
                 <Card
+                    className="dp-dense-card"
                     extra={
                         <Space wrap>
                             <a href={withQuery(paths.reports.payments, { ...localFilters, export: 'csv' })}>
@@ -92,14 +93,16 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
                         <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} placeholder="Date to" />
                     </div>
                     <Button style={{ marginTop: 16 }} type="primary" onClick={() => applyFilters()}>
-                        Apply Filters
+                        Apply
                     </Button>
                 </Card>
 
-                <Card>
+                <Card className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         dataSource={payments.data}
+                        locale={{ emptyText: 'No payment data found for selected filters.' }}
                         pagination={{
                             current: payments.meta.currentPage,
                             total: payments.meta.total,

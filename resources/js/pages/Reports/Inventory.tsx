@@ -46,7 +46,7 @@ export default function InventoryReport({ items, summary, categories, filters }:
     };
 
     return (
-        <AppShell title="Inventory Report" subtitle="Current stock snapshot with CSV/XLSX export." activeKey="reports">
+        <AppShell title="Inventory Report" subtitle="Current stock position with CSV/XLSX export." activeKey="reports">
             <Space direction="vertical" size="large" style={{ display: 'flex' }}>
                 <Space wrap size="large">
                     <Statistic title="Tracked Items" value={summary.tracked_items} />
@@ -54,6 +54,7 @@ export default function InventoryReport({ items, summary, categories, filters }:
                 </Space>
 
                 <Card
+                    className="dp-dense-card"
                     extra={
                         <Space wrap>
                             <a href={withQuery(paths.reports.inventory, { ...localFilters, export: 'csv' })}>
@@ -75,15 +76,17 @@ export default function InventoryReport({ items, summary, categories, filters }:
                             options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
                         />
                         <Button type="primary" onClick={() => applyFilters()}>
-                            Apply Filters
+                            Apply
                         </Button>
                     </div>
                 </Card>
 
-                <Card>
+                <Card className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         dataSource={items.data}
+                        locale={{ emptyText: 'No inventory rows found for selected filters.' }}
                         pagination={{
                             current: items.meta.currentPage,
                             total: items.meta.total,

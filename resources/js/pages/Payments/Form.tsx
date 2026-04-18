@@ -8,7 +8,7 @@ import { paths } from '@/lib/paths';
 import { LookupOption, SharedProps } from '@/types/shared';
 import { useForm, usePage } from '@inertiajs/react';
 import { Button, Card, Input, InputNumber, Select, Space, Tag, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 interface SupplierLookupRecord {
     id: number;
@@ -95,7 +95,9 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
     const selectedPartyName = data.direction === 'received' ? customerOption?.record.name : supplierOption?.record.name;
     const selectedInvoiceBalance = coerceNumber(invoiceOption?.record.balanceDue);
     const enteredAmount = coerceNumber(data.amount);
-    const remainingBalance = Math.max(selectedInvoiceBalance - enteredAmount, 0);
+    const balanceAfterPosting = selectedInvoiceBalance - enteredAmount;
+    const overpaymentAmount = Math.max(enteredAmount - selectedInvoiceBalance, 0);
+    const hasOverpayment = data.direction === 'received' && Boolean(invoiceOption) && overpaymentAmount > 0;
 
     const submit = () => {
         transform((current) => ({
@@ -146,18 +148,18 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
 
     return (
         <AppShell
-            title={mode === 'create' ? 'Receipt / Payment Voucher' : `Edit ${payment.id}`}
-            subtitle="Ctrl+S saves voucher, Alt+C adds customer, Alt+I opens invoice search for fast receipt posting."
+            title={mode === 'create' ? 'New Payment Entry' : 'Edit Payment Entry'}
+            subtitle="Ctrl+S save, Alt+C add customer, Alt+I search open invoice."
             activeKey="payments"
             extra={
-                <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing}>
-                    Save Voucher
+                <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
+                    Save Payment
                 </Button>
             }
         >
             <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Voucher Header" className="dp-dense-card">
+                    <Card title="Payment Header" className="dp-dense-card">
                         <div className="grid gap-3 xl:grid-cols-5">
                             <div>
                                 <Typography.Text strong>Direction</Typography.Text>
@@ -179,8 +181,8 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                         }
                                     }}
                                     options={[
-                                        { value: 'received', label: 'Received' },
-                                        { value: 'made', label: 'Made' },
+                                        { value: 'received', label: 'Receive' },
+                                        { value: 'made', label: 'Make Payment' },
                                     ]}
                                 />
                             </div>
@@ -327,18 +329,24 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 ))}
                             </div>
                         ) : null}
+
+                        {hasOverpayment ? (
+                            <Typography.Text type="danger" style={{ display: 'block', marginTop: 12 }}>
+                                Amount exceeds outstanding by {overpaymentAmount.toFixed(2)}. Reduce amount before saving.
+                            </Typography.Text>
+                        ) : null}
                     </Card>
                 </Space>
 
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Voucher Context" className="dp-dense-card">
+                    <Card title="Summary" className="dp-dense-card">
                         <Space direction="vertical" size="small" style={{ display: 'flex' }}>
                             <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Voucher Type</Typography.Text>
+                                <Typography.Text type="secondary">Entry Type</Typography.Text>
                                 <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {data.direction === 'received' ? 'Receipt Voucher' : 'Payment Voucher'}
+                                    {data.direction === 'received' ? 'Receipt' : 'Payment'}
                                 </Typography.Title>
-                                <Tag color={data.direction === 'received' ? 'green' : 'orange'}>{data.direction}</Tag>
+                                <Tag color={data.direction === 'received' ? 'green' : 'orange'}>{data.direction === 'received' ? 'Receive' : 'Make Payment'}</Tag>
                             </div>
                             <div className="dp-queue-card">
                                 <Typography.Text type="secondary">Party</Typography.Text>
@@ -363,8 +371,14 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                         </div>
                                         <div className="dp-summary-row dp-summary-row-total">
                                             <span>Balance Left</span>
-                                            <strong>{remainingBalance.toFixed(2)}</strong>
+                                            <strong>{Math.max(balanceAfterPosting, 0).toFixed(2)}</strong>
                                         </div>
+                                        {hasOverpayment ? (
+                                            <div className="dp-summary-row">
+                                                <span>Over by</span>
+                                                <strong>{overpaymentAmount.toFixed(2)}</strong>
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </div>
                             ) : null}
@@ -377,7 +391,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 </div>
                             </div>
                             <Typography.Text type="secondary">
-                                Laravel still enforces overpayment protection and updates invoice balances as soon as this voucher posts.
+                                Overpayment checks and invoice balance updates are applied automatically on save.
                             </Typography.Text>
                         </Space>
                     </Card>

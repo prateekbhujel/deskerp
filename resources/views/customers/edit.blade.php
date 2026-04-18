@@ -7,7 +7,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="dp-title">Edit Customer</h1>
-                <p class="dp-subtitle">Update customer profile, credit terms, and addresses.</p>
+                <p class="dp-subtitle">Update customer details, credit limit, and addresses.</p>
             </div>
             <form method="POST" action="{{ route('customers.destroy', $customer) }}" onsubmit="return confirm('Delete this customer?');">
                 @csrf
