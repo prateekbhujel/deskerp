@@ -171,6 +171,7 @@ export default function InvoiceIndex({ invoices, filters }: InvoiceIndexProps) {
                         rowKey="id"
                         size="small"
                         dataSource={invoices.data}
+                        locale={{ emptyText: 'No invoices found. Create a new invoice to start billing.' }}
                         pagination={{
                             current: invoices.meta.currentPage,
                             total: invoices.meta.total,

@@ -338,7 +338,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         setData('lines', nextLines.length ? nextLines : [blankLine()]);
                     }}
                 >
-                    Drop
+                    Remove
                 </Button>
             ),
         },
@@ -451,7 +451,15 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                             </Space>
                         }
                     >
-                        <Table rowKey={(_, index) => index ?? 0} size="small" pagination={false} columns={columns} dataSource={data.lines} scroll={{ x: 1240 }} />
+                        <Table
+                            rowKey={(_, index) => index ?? 0}
+                            size="small"
+                            pagination={false}
+                            columns={columns}
+                            dataSource={data.lines}
+                            locale={{ emptyText: 'No line items. Use Add Row or + Item to continue.' }}
+                            scroll={{ x: 1240 }}
+                        />
                         {errors.lines ? <Typography.Text type="danger">{errors.lines}</Typography.Text> : null}
                     </Card>
 

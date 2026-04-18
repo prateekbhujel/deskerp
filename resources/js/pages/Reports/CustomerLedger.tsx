@@ -76,6 +76,7 @@ export default function CustomerLedger({ customer, ledger, filters }: CustomerLe
                         rowKey={(record, index) => `${record.reference}-${index}`}
                         size="small"
                         dataSource={ledger.data}
+                        locale={{ emptyText: 'No customer ledger entries found for selected period.' }}
                         pagination={{
                             current: ledger.meta.currentPage,
                             total: ledger.meta.total,

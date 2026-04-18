@@ -3,7 +3,6 @@ import {
     BookOutlined,
     DatabaseOutlined,
     FileTextOutlined,
-    FolderOpenOutlined,
     LineChartOutlined,
     SettingOutlined,
     ShopOutlined,
@@ -198,6 +197,9 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
                         <Button block onClick={() => router.visit(paths.payments.createReceived)}>
                             Receive Payment
                         </Button>
+                        <Button block onClick={() => router.visit(paths.payments.createMade)}>
+                            Make Payment
+                        </Button>
                         <Button block onClick={() => router.visit(paths.items.create)}>
                             Add Item
                         </Button>
@@ -280,18 +282,7 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
                                 {subtitle ? <Typography.Text type="secondary">{subtitle}</Typography.Text> : null}
                             </div>
 
-                            <Space wrap size={[8, 8]}>
-                                <Link href={paths.invoices.create}>
-                                    <Button icon={<BookOutlined />}>New Invoice</Button>
-                                </Link>
-                                <Link href={paths.payments.createReceived}>
-                                    <Button icon={<SwapOutlined />}>Receive Payment</Button>
-                                </Link>
-                                <Link href={paths.reports.index}>
-                                    <Button icon={<FolderOpenOutlined />}>Reports</Button>
-                                </Link>
-                                {extra}
-                            </Space>
+                            {extra ? <Space wrap size={[8, 8]}>{extra}</Space> : null}
                         </div>
                     </div>
                 </Header>

@@ -15,7 +15,7 @@
             ['label' => 'Payments', 'route' => 'payments.index', 'active' => request()->routeIs('payments.*')],
         ],
         'Reports' => [
-            ['label' => 'Report Center', 'route' => 'reports.index', 'active' => request()->routeIs('reports.*')],
+            ['label' => 'Reports', 'route' => 'reports.index', 'active' => request()->routeIs('reports.*')],
         ],
         'System' => [
             ['label' => 'Backup / Restore', 'route' => 'backups.index', 'active' => request()->routeIs('backups.*')],
@@ -25,7 +25,7 @@
 
     $quickActions = [
         ['label' => 'Sales Invoice', 'route' => 'invoices.create', 'params' => [], 'hotkey' => 'Alt+N', 'primary' => true],
-        ['label' => 'Receipt Entry', 'route' => 'payments.create', 'params' => ['direction' => 'received'], 'hotkey' => 'Alt+R'],
+        ['label' => 'Payment Entry', 'route' => 'payments.create', 'params' => ['direction' => 'received'], 'hotkey' => 'Alt+P'],
         ['label' => 'Item Master', 'route' => 'items.create', 'params' => [], 'hotkey' => 'Alt+I'],
     ];
 @endphp

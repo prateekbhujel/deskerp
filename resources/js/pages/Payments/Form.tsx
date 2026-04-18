@@ -95,7 +95,9 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
     const selectedPartyName = data.direction === 'received' ? customerOption?.record.name : supplierOption?.record.name;
     const selectedInvoiceBalance = coerceNumber(invoiceOption?.record.balanceDue);
     const enteredAmount = coerceNumber(data.amount);
-    const remainingBalance = Math.max(selectedInvoiceBalance - enteredAmount, 0);
+    const balanceAfterPosting = selectedInvoiceBalance - enteredAmount;
+    const overpaymentAmount = Math.max(enteredAmount - selectedInvoiceBalance, 0);
+    const hasOverpayment = data.direction === 'received' && Boolean(invoiceOption) && overpaymentAmount > 0;
 
     const submit = () => {
         transform((current) => ({
@@ -150,7 +152,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
             subtitle="Ctrl+S save, Alt+C add customer, Alt+I search open invoice."
             activeKey="payments"
             extra={
-                <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing}>
+                <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
                     Save Payment
                 </Button>
             }
@@ -179,8 +181,8 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                         }
                                     }}
                                     options={[
-                                        { value: 'received', label: 'Received' },
-                                        { value: 'made', label: 'Made' },
+                                        { value: 'received', label: 'Receive' },
+                                        { value: 'made', label: 'Make Payment' },
                                     ]}
                                 />
                             </div>
@@ -327,6 +329,12 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 ))}
                             </div>
                         ) : null}
+
+                        {hasOverpayment ? (
+                            <Typography.Text type="danger" style={{ display: 'block', marginTop: 12 }}>
+                                Amount exceeds outstanding by {overpaymentAmount.toFixed(2)}. Reduce amount before saving.
+                            </Typography.Text>
+                        ) : null}
                     </Card>
                 </Space>
 
@@ -338,7 +346,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
                                     {data.direction === 'received' ? 'Receipt' : 'Payment'}
                                 </Typography.Title>
-                                <Tag color={data.direction === 'received' ? 'green' : 'orange'}>{data.direction}</Tag>
+                                <Tag color={data.direction === 'received' ? 'green' : 'orange'}>{data.direction === 'received' ? 'Receive' : 'Make Payment'}</Tag>
                             </div>
                             <div className="dp-queue-card">
                                 <Typography.Text type="secondary">Party</Typography.Text>
@@ -363,8 +371,14 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                         </div>
                                         <div className="dp-summary-row dp-summary-row-total">
                                             <span>Balance Left</span>
-                                            <strong>{remainingBalance.toFixed(2)}</strong>
+                                            <strong>{Math.max(balanceAfterPosting, 0).toFixed(2)}</strong>
                                         </div>
+                                        {hasOverpayment ? (
+                                            <div className="dp-summary-row">
+                                                <span>Over by</span>
+                                                <strong>{overpaymentAmount.toFixed(2)}</strong>
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </div>
                             ) : null}

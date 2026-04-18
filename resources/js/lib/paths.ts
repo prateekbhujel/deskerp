@@ -28,6 +28,7 @@ export const paths = {
         index: '/payments',
         create: '/payments/create',
         createReceived: '/payments/create?direction=received',
+        createMade: '/payments/create?direction=made',
         store: '/payments',
         show: (id: number | string) => `/payments/${id}`,
         edit: (id: number | string) => `/payments/${id}/edit`,

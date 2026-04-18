@@ -102,6 +102,7 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
                         rowKey="id"
                         size="small"
                         dataSource={payments.data}
+                        locale={{ emptyText: 'No payment data found for selected filters.' }}
                         pagination={{
                             current: payments.meta.currentPage,
                             total: payments.meta.total,

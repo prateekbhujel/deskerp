@@ -76,6 +76,7 @@ export default function SupplierLedger({ supplier, ledger, filters }: SupplierLe
                         rowKey={(record, index) => `${record.reference}-${index}`}
                         size="small"
                         dataSource={ledger.data}
+                        locale={{ emptyText: 'No supplier ledger entries found for selected period.' }}
                         pagination={{
                             current: ledger.meta.currentPage,
                             total: ledger.meta.total,

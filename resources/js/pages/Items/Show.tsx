@@ -83,8 +83,10 @@ export default function ItemsShow({ item }: ItemsShowProps) {
                 <Card title="Price Tiers" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={item.price_tiers}
+                        locale={{ emptyText: 'No price tiers configured for this item.' }}
                         columns={[
                             { title: 'Label', dataIndex: 'label' },
                             { title: 'Amount', align: 'right', render: (_, record) => formatMoney(record.amount) },
@@ -95,8 +97,10 @@ export default function ItemsShow({ item }: ItemsShowProps) {
                 <Card title="Stock Movements" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={item.stock_movements}
+                        locale={{ emptyText: 'No stock movement entries yet.' }}
                         columns={[
                             {
                                 title: 'Date',

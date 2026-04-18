@@ -98,8 +98,10 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                 <Card title="Invoice Lines" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={invoice.lines}
+                        locale={{ emptyText: 'No line items found for this invoice.' }}
                         columns={[
                             { title: 'Description', dataIndex: 'description' },
                             { title: 'Unit', dataIndex: 'unit_name' },
@@ -115,8 +117,10 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                 <Card title="Payments" className="dp-dense-card">
                     <Table
                         rowKey="id"
+                        size="small"
                         pagination={false}
                         dataSource={invoice.payments}
+                        locale={{ emptyText: 'No linked payments yet. Record a receipt from Payments.' }}
                         columns={[
                             {
                                 title: 'Number',

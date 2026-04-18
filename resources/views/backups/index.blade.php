@@ -52,7 +52,7 @@
                         </div>
                     @empty
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
-                            No backups have been generated yet.
+                            No backups found. Use Download Backup to create the first file.
                         </div>
                     @endforelse
                 </div>

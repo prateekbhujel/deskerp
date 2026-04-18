@@ -7,7 +7,7 @@
         <div class="dp-toolbar">
             <div>
                 <h1 class="dp-title">Suppliers</h1>
-                <p class="dp-subtitle">Maintain supplier profiles for outbound payments and future purchasing flows.</p>
+                <p class="dp-subtitle">Supplier list for payment entries and supplier ledgers.</p>
             </div>
             <a href="{{ route('suppliers.create') }}" class="dp-btn-primary">Add Supplier</a>
         </div>
@@ -67,7 +67,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-slate-500">No suppliers found.</td>
+                            <td colspan="5" class="text-center text-slate-500">
+                                No suppliers found. <a href="{{ route('suppliers.create') }}" class="font-medium text-teal-700 hover:text-teal-800">Add your first supplier</a>.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>

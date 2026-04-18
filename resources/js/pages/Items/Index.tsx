@@ -145,6 +145,7 @@ export default function ItemsIndex({ items, filters, categories }: ItemsIndexPro
                         rowKey="id"
                         size="small"
                         dataSource={items.data}
+                        locale={{ emptyText: 'No items found. Add an item to start invoicing and inventory tracking.' }}
                         pagination={{
                             current: items.meta.currentPage,
                             total: items.meta.total,

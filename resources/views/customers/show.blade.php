@@ -67,7 +67,9 @@
                                 </div>
                             </a>
                         @empty
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">No invoices recorded yet.</div>
+                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                                No invoices recorded yet. <a href="{{ route('invoices.create') }}" class="font-medium text-teal-700 hover:text-teal-800">Create invoice</a>.
+                            </div>
                         @endforelse
                     </div>
                 </div>
@@ -86,7 +88,9 @@
                                 </div>
                             </a>
                         @empty
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">No payments recorded yet.</div>
+                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                                No payments recorded yet. <a href="{{ route('payments.create', ['direction' => 'received']) }}" class="font-medium text-teal-700 hover:text-teal-800">Record receipt</a>.
+                            </div>
                         @endforelse
                     </div>
                 </div>

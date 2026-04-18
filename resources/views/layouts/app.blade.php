@@ -58,17 +58,17 @@
                                     New Invoice
                                     <span class="dp-kbd">Alt+N</span>
                                 </a>
-                                <a href="{{ route('payments.create', ['direction' => 'received']) }}" class="dp-btn" data-hotkey="alt+r">
-                                    Payment Received
-                                    <span class="dp-kbd">Alt+R</span>
+                                <a href="{{ route('payments.create', ['direction' => 'received']) }}" class="dp-btn" data-hotkey="alt+p">
+                                    Payment Entry
+                                    <span class="dp-kbd">Alt+P</span>
                                 </a>
                                 <a href="{{ route('items.create') }}" class="dp-btn" data-hotkey="alt+i">
                                     New Item
                                     <span class="dp-kbd">Alt+I</span>
                                 </a>
-                                <a href="{{ route('reports.index') }}" class="dp-btn" data-hotkey="alt+g">
+                                <a href="{{ route('reports.index') }}" class="dp-btn" data-hotkey="alt+r">
                                     Reports
-                                    <span class="dp-kbd">Alt+G</span>
+                                    <span class="dp-kbd">Alt+R</span>
                                 </a>
                             </div>
                         </div>

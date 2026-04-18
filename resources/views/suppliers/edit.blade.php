@@ -7,7 +7,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="dp-title">Edit Supplier</h1>
-                <p class="dp-subtitle">Update supplier details and opening payable balance.</p>
+                <p class="dp-subtitle">Update supplier details and opening balance.</p>
             </div>
             <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" onsubmit="return confirm('Delete this supplier?');">
                 @csrf

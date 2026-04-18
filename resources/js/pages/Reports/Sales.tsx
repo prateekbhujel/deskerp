@@ -114,6 +114,7 @@ export default function SalesReport({ invoices, summary, filters, selected_custo
                         rowKey="id"
                         size="small"
                         dataSource={invoices.data}
+                        locale={{ emptyText: 'No sales data found for selected filters.' }}
                         pagination={{
                             current: invoices.meta.currentPage,
                             total: invoices.meta.total,

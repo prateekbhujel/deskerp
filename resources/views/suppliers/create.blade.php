@@ -6,7 +6,7 @@
     <section class="dp-section">
         <div>
             <h1 class="dp-title">Add Supplier</h1>
-            <p class="dp-subtitle">Create a supplier profile for payments and ledger tracking.</p>
+            <p class="dp-subtitle">Create a supplier profile for payment entries and ledger tracking.</p>
         </div>
 
         <form method="POST" action="{{ route('suppliers.store') }}" class="dp-card p-5">

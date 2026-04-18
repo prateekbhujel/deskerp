@@ -86,6 +86,7 @@ export default function InventoryReport({ items, summary, categories, filters }:
                         rowKey="id"
                         size="small"
                         dataSource={items.data}
+                        locale={{ emptyText: 'No inventory rows found for selected filters.' }}
                         pagination={{
                             current: items.meta.currentPage,
                             total: items.meta.total,
