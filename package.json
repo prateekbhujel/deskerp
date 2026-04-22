@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite",
+        "dev": "concurrently -c \"#93c5fd,#fdba74\" --names=server,vite \"bash ./scripts/dev-server.sh\" \"vite\" --kill-others",
+        "dev:vite": "vite",
         "test:e2e": "playwright test",
         "desktop:install": "npm --prefix desktop install",
         "desktop:dev": "npm --prefix desktop run dev",

@@ -54,14 +54,22 @@ touch database/database.sqlite
 php artisan migrate --seed
 ```
 
-5. Start DeskERP in browser mode:
+5. Start DeskERP in browser mode (single command):
 
 ```bash
-php artisan serve
 npm run dev
 ```
 
+`npm run dev` starts both Laravel (`127.0.0.1:8000`) and Vite.  
+If port `8000` is already running, it reuses the existing Laravel server and starts Vite.
+
 6. Open [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+For frontend-only Vite (when Laravel is already running), use:
+
+```bash
+npm run dev:vite
+```
 
 ## Default Admin Login
 

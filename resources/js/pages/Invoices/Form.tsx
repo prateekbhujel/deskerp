@@ -346,7 +346,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
     return (
         <AppShell
             title={mode === 'create' ? 'New Invoice' : `Edit ${invoice.invoice_number}`}
-            subtitle="Ctrl+S save draft, Ctrl+Enter finalize, Alt+C add customer, Alt+I add item."
+            subtitle="Ctrl+S draft, Ctrl+Enter finalize, Alt+C customer, Alt+I item."
             activeKey="invoices"
             extra={
                 <Space wrap>
@@ -371,7 +371,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
         >
             <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Invoice Header" className="dp-dense-card">
+                    <Card title="Voucher Header" className="dp-dense-card">
                         <div className="grid gap-3 xl:grid-cols-6">
                             <div className="xl:col-span-2">
                                 <Typography.Text strong>Party Account</Typography.Text>
@@ -438,7 +438,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     </Card>
 
                     <Card
-                        title="Invoice Lines"
+                        title="Voucher Lines"
                         className="dp-dense-card"
                         extra={
                             <Space wrap>
@@ -462,8 +462,8 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         {errors.lines ? <Typography.Text type="danger">{errors.lines}</Typography.Text> : null}
                     </Card>
 
-                    <Card title="Narration / Notes" className="dp-dense-card">
-                        <Input.TextArea rows={4} value={data.notes} onChange={(event) => setData('notes', event.target.value)} placeholder="Narration, delivery note, or internal remarks" />
+                    <Card title="Notes" className="dp-dense-card">
+                        <Input.TextArea rows={4} value={data.notes} onChange={(event) => setData('notes', event.target.value)} placeholder="Narration or reference notes" />
                     </Card>
                 </Space>
 
@@ -489,10 +489,10 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         </div>
                     </Card>
 
-                    <Card title="Summary" className="dp-dense-card">
+                    <Card title="Voucher Summary" className="dp-dense-card">
                         <Space direction="vertical" size="small" style={{ display: 'flex' }}>
                             <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Customer</Typography.Text>
+                                <Typography.Text type="secondary">Party Account</Typography.Text>
                                 <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
                                     {customerOption?.record.name || 'Select party account'}
                                 </Typography.Title>
@@ -505,19 +505,21 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                                 </Typography.Title>
                             </div>
                             <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Shortcut Strip</Typography.Text>
+                                <Typography.Text type="secondary">Document State</Typography.Text>
+                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
+                                    {data.status === 'final' ? 'Final' : 'Draft'}
+                                </Typography.Title>
+                                <Tag color={data.status === 'final' ? 'blue' : 'default'}>{activeLines} active line(s)</Tag>
+                            </div>
+                            <div className="dp-queue-card">
+                                <Typography.Text type="secondary">Shortcuts</Typography.Text>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                     <span className="dp-kbd">Ctrl+S</span>
                                     <span className="dp-kbd">Ctrl+Enter</span>
                                     <span className="dp-kbd">Alt+C</span>
                                     <span className="dp-kbd">Alt+I</span>
-                                    <span className="dp-kbd">Alt+A</span>
-                                    <span className="dp-kbd">Alt+L</span>
                                 </div>
                             </div>
-                            <Typography.Text type="secondary">
-                                Finalizing updates stock for inventory-tracked items and keeps outstanding balances ready for payment entry.
-                            </Typography.Text>
                         </Space>
                     </Card>
                 </Space>

@@ -159,7 +159,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
         >
             <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Payment Header" className="dp-dense-card">
+                    <Card title="Voucher Header" className="dp-dense-card">
                         <div className="grid gap-3 xl:grid-cols-12">
                             <div className="xl:col-span-2">
                                 <Typography.Text strong>Direction</Typography.Text>
@@ -181,7 +181,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                         }
                                     }}
                                     options={[
-                                        { value: 'received', label: 'Receive' },
+                                        { value: 'received', label: 'Receive Payment' },
                                         { value: 'made', label: 'Make Payment' },
                                     ]}
                                 />
@@ -220,12 +220,17 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                             </div>
                             <div className="xl:col-span-2">
                                 <Typography.Text strong>Reference</Typography.Text>
-                                <Input style={{ marginTop: 8 }} value={data.reference_number ?? ''} onChange={(event) => setData('reference_number', event.target.value)} />
+                                <Input
+                                    style={{ marginTop: 8 }}
+                                    value={data.reference_number ?? ''}
+                                    onChange={(event) => setData('reference_number', event.target.value)}
+                                    placeholder="Voucher ref"
+                                />
                             </div>
                         </div>
                     </Card>
 
-                    <Card title={data.direction === 'received' ? 'Receipt Allocation' : 'Payment Allocation'} className="dp-dense-card">
+                    <Card title="Allocation" className="dp-dense-card">
                         <div className="grid gap-3 xl:grid-cols-2">
                             {data.direction === 'received' ? (
                                 <>
@@ -316,7 +321,13 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
 
                             <div className={data.direction === 'received' ? '' : 'xl:col-span-1'}>
                                 <Typography.Text strong>Notes / Narration</Typography.Text>
-                                <Input.TextArea style={{ marginTop: 8 }} rows={4} value={data.notes ?? ''} onChange={(event) => setData('notes', event.target.value)} />
+                                <Input.TextArea
+                                    style={{ marginTop: 8 }}
+                                    rows={4}
+                                    value={data.notes ?? ''}
+                                    onChange={(event) => setData('notes', event.target.value)}
+                                    placeholder="Narration or payment remarks"
+                                />
                             </div>
                         </div>
 
@@ -339,7 +350,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                 </Space>
 
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Summary" className="dp-dense-card">
+                    <Card title="Voucher Summary" className="dp-dense-card">
                         <Space direction="vertical" size="small" style={{ display: 'flex' }}>
                             <div className="dp-queue-card">
                                 <Typography.Text type="secondary">Entry Type</Typography.Text>
@@ -353,6 +364,19 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
                                     {selectedPartyName || 'Select account'}
                                 </Typography.Title>
+                            </div>
+                            <div className="dp-queue-card">
+                                <Typography.Text type="secondary">Posting</Typography.Text>
+                                <div className="mt-2 space-y-1">
+                                    <div className="dp-summary-row">
+                                        <span>Date</span>
+                                        <strong>{data.payment_date || '-'}</strong>
+                                    </div>
+                                    <div className="dp-summary-row dp-summary-row-total">
+                                        <span>Method</span>
+                                        <strong>{data.method || '-'}</strong>
+                                    </div>
+                                </div>
                             </div>
                             {data.direction === 'received' ? (
                                 <div className="dp-queue-card">

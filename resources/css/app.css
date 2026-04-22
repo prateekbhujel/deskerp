@@ -300,4 +300,25 @@
     .dp-shell .ant-table-cell {
         vertical-align: middle;
     }
+
+    .dp-shell .ant-input,
+    .dp-shell .ant-input-number,
+    .dp-shell .ant-select-selector,
+    .dp-shell .ant-picker {
+        border-radius: 8px !important;
+    }
+
+    .dp-shell .ant-input,
+    .dp-shell .ant-input-number-input,
+    .dp-shell .ant-picker-input > input,
+    .dp-shell .ant-select-selection-item,
+    .dp-shell .ant-select-selection-placeholder {
+        font-size: 13px;
+    }
+
+    .dp-shell .ant-select-selector,
+    .dp-shell .ant-input-number,
+    .dp-shell .ant-picker {
+        min-height: 38px !important;
+    }
 }
