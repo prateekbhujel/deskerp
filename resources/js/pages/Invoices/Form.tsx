@@ -4,11 +4,12 @@ import { ItemLookupRecord, QuickAddItemModal } from '@/components/forms/QuickAdd
 import { RemoteLookupSelect } from '@/components/forms/RemoteLookupSelect';
 import { AppShell } from '@/components/layout/AppShell';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 import { calculateInvoiceLinePreview, calculateInvoicePreview, InvoiceLineDraft } from '@/lib/invoice';
 import { paths } from '@/lib/paths';
 import { LookupOption, SharedProps, SimpleOption } from '@/types/shared';
 import { useForm, usePage } from '@inertiajs/react';
-import { Button, Card, Input, InputNumber, Select, Space, Table, Tag, Typography } from 'antd';
+import { Button, Input, InputNumber, Select, Space, Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { KeyboardEvent as ReactKeyboardEvent, useMemo, useState } from 'react';
 
@@ -59,6 +60,7 @@ function blankLine() {
 export default function InvoiceForm({ mode, invoice, selected_customer, selected_line_items, support }: InvoiceFormPageProps) {
     const page = usePage<SharedProps>();
     const useBsDates = page.props.settings.displayBsDates;
+    const { isMac, shortcuts } = usePlatformShortcuts();
     const [customerOption, setCustomerOption] = useState<LookupOption<CustomerLookupRecord> | null>(
         selected_customer
             ? {
@@ -134,15 +136,30 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
         setItemModalOpen(true);
     };
 
-    const focusFirstVoucherCell = () => {
-        const target = document.querySelector<HTMLElement>('[data-invoice-cell="true"]');
+    const focusFirstAmountCell = () => {
+        const target = document.querySelector<HTMLElement>('[data-invoice-rate="true"]');
         target?.focus();
+    };
+
+    const clearVoucher = () => {
+        setCustomerOption(null);
+        setLineSelections({});
+        setData({
+            customer_id: null,
+            issue_date: invoice.issue_date ?? '',
+            due_date: invoice.due_date ?? '',
+            status: 'draft',
+            reference_number: '',
+            notes: '',
+            lines: [blankLine()],
+        });
     };
 
     useKeyboardShortcuts([
         {
             key: 's',
-            ctrl: true,
+            ctrl: !isMac,
+            meta: isMac,
             allowInInputs: true,
             handler: () => submit('draft'),
         },
@@ -168,13 +185,25 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
             key: 'a',
             alt: true,
             allowInInputs: true,
-            handler: () => addVoucherRow(),
+            handler: () => focusFirstAmountCell(),
         },
         {
             key: 'l',
             alt: true,
             allowInInputs: true,
-            handler: () => focusFirstVoucherCell(),
+            handler: () => addVoucherRow(),
+        },
+        {
+            key: 'x',
+            alt: true,
+            allowInInputs: true,
+            handler: () => clearVoucher(),
+        },
+        {
+            key: 'o',
+            alt: true,
+            allowInInputs: true,
+            handler: () => document.getElementById('invoice-notes-field')?.focus(),
         },
     ]);
 
@@ -203,12 +232,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
 
     const columns: ColumnsType<(typeof data.lines)[number]> = [
         {
-            title: '#',
-            width: 48,
-            render: (_, __, index) => <span className="dp-mono text-xs text-slate-500">{index + 1}</span>,
-        },
-        {
-            title: 'Item / Search',
+            title: 'Item',
             width: 220,
             render: (_, line, index) => (
                 <RemoteLookupSelect<ItemLookupRecord>
@@ -241,6 +265,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         record,
                     })}
                     placeholder="Search item"
+                    testId={`invoice-line-item-${index}`}
                 />
             ),
         },
@@ -278,6 +303,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
             render: (_, line, index) => (
                 <InputNumber
                     data-invoice-cell="true"
+                    data-invoice-rate="true"
                     className="w-full"
                     value={Number(line.rate)}
                     min={0}
@@ -320,14 +346,14 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
             ),
         },
         {
-            title: 'Line Total',
-            width: 116,
+            title: 'Total',
+            width: 110,
             align: 'right',
             render: (_, __, index) => lineTotals[index]?.total.toFixed(2) ?? '0.00',
         },
         {
-            title: '',
-            width: 72,
+            title: 'Action',
+            width: 80,
             render: (_, __, index) => (
                 <Button
                     danger
@@ -337,7 +363,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                         setData('lines', nextLines.length ? nextLines : [blankLine()]);
                     }}
                 >
-                    Remove
+                    Del
                 </Button>
             ),
         },
@@ -346,8 +372,9 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
     return (
         <AppShell
             title={mode === 'create' ? 'New Invoice' : `Edit ${invoice.invoice_number}`}
-            subtitle="Ctrl+S draft, Ctrl+Enter finalize, Alt+C customer, Alt+I item."
+            subtitle={`Voucher entry | ${shortcuts.save} save | ${shortcuts.addLineRow} add row`}
             activeKey="invoices"
+            mode={data.status === 'final' ? 'Posted' : 'Draft'}
             extra={
                 <Space wrap>
                     {invoice.id ? (
@@ -366,16 +393,21 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     <Button data-testid="invoice-finalize" type="primary" onClick={() => submit('final')} loading={processing}>
                         Finalize Invoice
                     </Button>
+                    <Button onClick={clearVoucher}>Clear ({shortcuts.clearForm})</Button>
                 </Space>
             }
         >
-            <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Voucher Header" className="dp-dense-card">
-                        <div className="grid gap-3 xl:grid-cols-6">
-                            <div className="xl:col-span-2">
-                                <Typography.Text strong>Party Account</Typography.Text>
-                                <Space.Compact style={{ width: '100%', marginTop: 8 }}>
+            <div className="dp-form-page" data-shortcut-scope="voucher">
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Voucher Header</h3>
+                        <span>{activeLines} line(s)</span>
+                    </div>
+                    <div className="dp-form-section-body">
+                        <div className="dp-form-grid">
+                            <div className="dp-field col-span-12 xl:col-span-4">
+                                <label className="dp-field-label">Party Account</label>
+                                <Space.Compact style={{ width: '100%' }}>
                                     <div style={{ flex: 1 }}>
                                         <RemoteLookupSelect<CustomerLookupRecord>
                                             endpoint={paths.lookups.customers}
@@ -394,135 +426,123 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                                         />
                                     </div>
                                     <Button data-testid="invoice-add-customer" onClick={() => setCustomerModalOpen(true)}>
-                                        + Customer
+                                        Customer
                                     </Button>
                                 </Space.Compact>
-                                {errors.customer_id ? <Typography.Text type="danger">{errors.customer_id}</Typography.Text> : null}
+                                {errors.customer_id ? <span className="dp-error-text">{errors.customer_id}</span> : null}
                             </div>
 
-                            <div>
-                                <Typography.Text strong>Issue Date</Typography.Text>
-                                <div style={{ marginTop: 8 }}>
-                                    <BsDateInput value={data.issue_date} onChange={(value) => setData('issue_date', value)} displayBsDates={useBsDates} placeholder="Issue date" />
-                                </div>
-                                {errors.issue_date ? <Typography.Text type="danger">{errors.issue_date}</Typography.Text> : null}
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Issue Date</label>
+                                <BsDateInput value={data.issue_date} onChange={(value) => setData('issue_date', value)} displayBsDates={useBsDates} placeholder="Issue date" />
+                                {errors.issue_date ? <span className="dp-error-text">{errors.issue_date}</span> : null}
                             </div>
 
-                            <div>
-                                <Typography.Text strong>Due Date</Typography.Text>
-                                <div style={{ marginTop: 8 }}>
-                                    <BsDateInput value={data.due_date} onChange={(value) => setData('due_date', value)} displayBsDates={useBsDates} placeholder="Due date" />
-                                </div>
-                                {errors.due_date ? <Typography.Text type="danger">{errors.due_date}</Typography.Text> : null}
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Due Date</label>
+                                <BsDateInput value={data.due_date} onChange={(value) => setData('due_date', value)} displayBsDates={useBsDates} placeholder="Due date" />
+                                {errors.due_date ? <span className="dp-error-text">{errors.due_date}</span> : null}
                             </div>
 
-                            <div>
-                                <Typography.Text strong>Status</Typography.Text>
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Mode</label>
                                 <Select
-                                    className="w-full"
-                                    style={{ marginTop: 8 }}
                                     value={data.status}
                                     onChange={(value) => setData('status', value)}
                                     options={[
                                         { value: 'draft', label: 'Draft' },
-                                        { value: 'final', label: 'Final' },
+                                        { value: 'final', label: 'Posted' },
                                     ]}
                                 />
                             </div>
 
-                            <div>
-                                <Typography.Text strong>Reference</Typography.Text>
-                                <Input style={{ marginTop: 8 }} value={data.reference_number} onChange={(event) => setData('reference_number', event.target.value)} />
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Reference</label>
+                                <Input value={data.reference_number} onChange={(event) => setData('reference_number', event.target.value)} />
                             </div>
                         </div>
-                    </Card>
+                    </div>
+                </section>
 
-                    <Card
-                        title="Voucher Lines"
-                        className="dp-dense-card"
-                        extra={
-                            <Space wrap>
-                                <Tag color="blue">{activeLines} active lines</Tag>
-                                <Button onClick={() => addVoucherRow()}>Add Row</Button>
-                                <Button data-testid="invoice-add-item" onClick={() => openQuickItemModal()}>
-                                    + Item
-                                </Button>
-                            </Space>
-                        }
-                    >
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Allocation</h3>
+                        <Space size={6}>
+                            <Button onClick={() => addVoucherRow()}>Add Row</Button>
+                            <Button data-testid="invoice-add-item" onClick={() => openQuickItemModal()}>
+                                Search Item
+                            </Button>
+                        </Space>
+                    </div>
+                    <div className="dp-form-section-body">
+                        <div className="dp-field">
+                            <label className="dp-field-label">Notes</label>
+                            <Input.TextArea
+                                id="invoice-notes-field"
+                                rows={3}
+                                value={data.notes}
+                                onChange={(event) => setData('notes', event.target.value)}
+                                placeholder="Narration or reference notes"
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Voucher Lines</h3>
+                        <span>{shortcuts.addLineRow} add row</span>
+                    </div>
+                    <div className="dp-form-section-body">
                         <Table
                             rowKey={(_, index) => index ?? 0}
                             size="small"
                             pagination={false}
                             columns={columns}
                             dataSource={data.lines}
-                            locale={{ emptyText: 'No line items. Use Add Row or + Item to continue.' }}
-                            scroll={{ x: 1240 }}
+                            locale={{ emptyText: 'No line items. Add a row to begin.' }}
+                            scroll={{ x: 1120 }}
                         />
-                        {errors.lines ? <Typography.Text type="danger">{errors.lines}</Typography.Text> : null}
-                    </Card>
+                        {errors.lines ? <span className="dp-error-text">{errors.lines}</span> : null}
+                    </div>
+                </section>
 
-                    <Card title="Notes" className="dp-dense-card">
-                        <Input.TextArea rows={4} value={data.notes} onChange={(event) => setData('notes', event.target.value)} placeholder="Narration or reference notes" />
-                    </Card>
-                </Space>
-
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Totals" className="dp-dense-card">
-                        <div className="space-y-3">
-                            <div className="dp-summary-row">
-                                <span>Subtotal</span>
-                                <strong>{totals.subtotal.toFixed(2)}</strong>
-                            </div>
-                            <div className="dp-summary-row">
-                                <span>Discount</span>
-                                <strong>{totals.discountTotal.toFixed(2)}</strong>
-                            </div>
-                            <div className="dp-summary-row">
-                                <span>Tax</span>
-                                <strong>{totals.taxTotal.toFixed(2)}</strong>
-                            </div>
-                            <div className="dp-summary-row dp-summary-row-total">
-                                <span>Total</span>
-                                <strong>{totals.total.toFixed(2)}</strong>
-                            </div>
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Totals</h3>
+                        <span>{data.status === 'final' ? 'Posted' : 'Draft'}</span>
+                    </div>
+                    <div className="dp-form-section-body">
+                        <div className="dp-summary-grid">
+                            <span>Subtotal</span>
+                            <strong>{totals.subtotal.toFixed(2)}</strong>
+                            <span>Discount</span>
+                            <strong>{totals.discountTotal.toFixed(2)}</strong>
+                            <span>Tax</span>
+                            <strong>{totals.taxTotal.toFixed(2)}</strong>
+                            <span className="dp-summary-total">Grand Total</span>
+                            <strong className="dp-summary-total">{totals.total.toFixed(2)}</strong>
                         </div>
-                    </Card>
+                    </div>
+                </section>
 
-                    <Card title="Voucher Summary" className="dp-dense-card">
-                        <Space direction="vertical" size="small" style={{ display: 'flex' }}>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Party Account</Typography.Text>
-                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {customerOption?.record.name || 'Select party account'}
-                                </Typography.Title>
-                                {customerOption?.record.phone ? <Typography.Text type="secondary">{customerOption.record.phone}</Typography.Text> : null}
-                            </div>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Invoice Number</Typography.Text>
-                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {invoice.invoice_number || 'Will be assigned on save'}
-                                </Typography.Title>
-                            </div>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Document State</Typography.Text>
-                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {data.status === 'final' ? 'Final' : 'Draft'}
-                                </Typography.Title>
-                                <Tag color={data.status === 'final' ? 'blue' : 'default'}>{activeLines} active line(s)</Tag>
-                            </div>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Shortcuts</Typography.Text>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                    <span className="dp-kbd">Ctrl+S</span>
-                                    <span className="dp-kbd">Ctrl+Enter</span>
-                                    <span className="dp-kbd">Alt+C</span>
-                                    <span className="dp-kbd">Alt+I</span>
-                                </div>
-                            </div>
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Shortcuts</h3>
+                    </div>
+                    <div className="dp-form-section-body">
+                        <Space size={6} wrap>
+                            <span className="dp-kbd">{shortcuts.save}</span>
+                            <span className="dp-kbd">Ctrl+Enter</span>
+                            <span className="dp-kbd">{shortcuts.addCustomer}</span>
+                            <span className="dp-kbd">{shortcuts.searchInvoice}</span>
+                            <span className="dp-kbd">{shortcuts.focusAmount}</span>
+                            <span className="dp-kbd">{shortcuts.addLineRow}</span>
+                            <span className="dp-kbd">{shortcuts.clearForm}</span>
+                            <span className="dp-kbd">{shortcuts.notesField}</span>
                         </Space>
-                    </Card>
-                </Space>
+                    </div>
+                </section>
             </div>
 
             <QuickAddCustomerModal

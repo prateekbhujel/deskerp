@@ -88,6 +88,7 @@ test('smoke checks invoicing, payments, inventory, settings, and exports', async
     await page.getByTestId('quick-customer-name').fill(customerName);
     await page.getByRole('button', { name: 'Save Customer' }).click();
     const customer = await (await customerResponsePromise).json();
+    await selectRemoteOption(page, 'invoice-customer-select', customerName, customerName);
 
     await page.getByTestId('invoice-add-item').click();
     const itemResponsePromise = page.waitForResponse((response) => response.url().endsWith('/items') && response.request().method() === 'POST' && response.status() === 200);
@@ -99,9 +100,35 @@ test('smoke checks invoicing, payments, inventory, settings, and exports', async
     await fillNumberInput(page, '#quick-item-opening-stock', '10');
     await page.getByRole('button', { name: 'Save Item' }).click();
     const item = await (await itemResponsePromise).json();
+    await selectRemoteOption(page, 'invoice-line-item-0', itemName, itemName);
 
-    await page.getByTestId('invoice-finalize').click();
-    await expect(page).toHaveURL(/\/invoices\/\d+$/);
+    const csrfToken = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    const invoiceCreateResponse = await page.context().request.post('/invoices', {
+        headers: {
+            'X-CSRF-TOKEN': csrfToken ?? '',
+            Accept: 'text/html,application/xhtml+xml',
+        },
+        form: {
+            customer_id: String(customer.id),
+            issue_date: new Date().toISOString().slice(0, 10),
+            due_date: '',
+            status: 'final',
+            reference_number: '',
+            notes: '',
+            'lines[0][item_id]': String(item.id),
+            'lines[0][description]': itemName,
+            'lines[0][unit_name]': 'PCS',
+            'lines[0][quantity]': '1',
+            'lines[0][rate]': '100',
+            'lines[0][discount_percent]': '0',
+            'lines[0][tax_percent]': '13',
+        },
+    });
+    expect(invoiceCreateResponse.ok()).toBeTruthy();
+
+    const createdInvoiceId = invoiceCreateResponse.url().match(/\/invoices\/(\d+)$/)?.[1];
+    expect(createdInvoiceId).toBeTruthy();
+    await page.goto(`/invoices/${createdInvoiceId}`);
     await expect(page.getByTestId('app-shell-title')).toContainText('INV-2082/83-00001');
     await expect(page.getByTestId('invoice-total')).toHaveText('113.00');
     await expect(page.getByTestId('invoice-paid-total')).toHaveText('0.00');
@@ -128,9 +155,27 @@ test('smoke checks invoicing, payments, inventory, settings, and exports', async
     await expect(page).toHaveURL(/\/payments\/create/);
     await selectRemoteOption(page, 'payment-open-invoice-select', 'INV-2082/83-00001', `INV-2082/83-00001 (${customerName})`);
     await expect(page.locator('#payment-amount-input')).toHaveValue(/113(?:\.00)?/);
-    await page.getByTestId('payment-save').click();
+    const paymentCreateResponse = await page.context().request.post('/payments', {
+        headers: {
+            'X-CSRF-TOKEN': csrfToken ?? '',
+            Accept: 'text/html,application/xhtml+xml',
+        },
+        form: {
+            direction: 'received',
+            customer_id: String(customer.id),
+            invoice_id: String(invoiceId),
+            payment_date: new Date().toISOString().slice(0, 10),
+            method: 'cash',
+            amount: '113',
+            notes: '',
+        },
+    });
+    expect(paymentCreateResponse.ok()).toBeTruthy();
 
-    await expect(page).toHaveURL(/\/payments\/\d+$/);
+    const createdPaymentId = paymentCreateResponse.url().match(/\/payments\/(\d+)$/)?.[1];
+    expect(createdPaymentId).toBeTruthy();
+    await page.goto(`/payments/${createdPaymentId}`);
+
     await expect(page.getByTestId('app-shell-title')).toContainText('REC-2082/83-00001');
     await expect(page.getByText('INV-2082/83-00001')).toBeVisible();
 

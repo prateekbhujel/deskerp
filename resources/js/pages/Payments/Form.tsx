@@ -3,11 +3,12 @@ import { CustomerLookupRecord, QuickAddCustomerModal } from '@/components/forms/
 import { RemoteLookupSelect } from '@/components/forms/RemoteLookupSelect';
 import { AppShell } from '@/components/layout/AppShell';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 import { coerceNumber } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { LookupOption, SharedProps } from '@/types/shared';
 import { useForm, usePage } from '@inertiajs/react';
-import { Button, Card, Input, InputNumber, Select, Space, Tag, Typography } from 'antd';
+import { Button, Input, InputNumber, Select, Space } from 'antd';
 import { useState } from 'react';
 
 interface SupplierLookupRecord {
@@ -52,6 +53,7 @@ interface PaymentFormProps {
 export default function PaymentsForm({ mode, payment, selected_customer, selected_supplier, selected_invoice, methods }: PaymentFormProps) {
     const page = usePage<SharedProps>();
     const useBsDates = page.props.settings.displayBsDates;
+    const { isMac, shortcuts } = usePlatformShortcuts();
     const [customerModalOpen, setCustomerModalOpen] = useState(false);
     const [customerOption, setCustomerOption] = useState<LookupOption<CustomerLookupRecord> | null>(
         selected_customer
@@ -118,10 +120,28 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
         });
     };
 
+    const clearForm = () => {
+        setCustomerOption(null);
+        setSupplierOption(null);
+        setInvoiceOption(null);
+        setData({
+            direction: payment.direction,
+            customer_id: null,
+            supplier_id: null,
+            invoice_id: null,
+            payment_date: payment.payment_date,
+            method: payment.method,
+            reference_number: '',
+            amount: '0.00',
+            notes: '',
+        });
+    };
+
     useKeyboardShortcuts([
         {
             key: 's',
-            ctrl: true,
+            ctrl: !isMac,
+            meta: isMac,
             allowInInputs: true,
             handler: () => submit(),
         },
@@ -144,28 +164,51 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                 target?.click();
             },
         },
+        {
+            key: 'a',
+            alt: true,
+            allowInInputs: true,
+            handler: () => document.getElementById('payment-amount-input')?.focus(),
+        },
+        {
+            key: 'x',
+            alt: true,
+            allowInInputs: true,
+            handler: () => clearForm(),
+        },
+        {
+            key: 'o',
+            alt: true,
+            allowInInputs: true,
+            handler: () => document.getElementById('payment-notes-field')?.focus(),
+        },
     ]);
 
     return (
         <AppShell
             title={mode === 'create' ? 'New Payment Entry' : 'Edit Payment Entry'}
-            subtitle={data.direction === 'received' ? 'Ctrl+S save, Alt+C add customer, Alt+I search open invoice.' : 'Ctrl+S save payment voucher.'}
+            subtitle={`Voucher entry | ${shortcuts.save} save | ${shortcuts.searchInvoice} invoice search`}
             activeKey="payments"
+            mode={mode === 'create' ? 'Draft' : 'Posted'}
             extra={
-                <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
-                    Save Payment
-                </Button>
+                <Space size={6} wrap>
+                    <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
+                        Save Payment
+                    </Button>
+                    <Button onClick={clearForm}>Clear ({shortcuts.clearForm})</Button>
+                </Space>
             }
         >
-            <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Voucher Header" className="dp-dense-card">
-                        <div className="grid gap-3 xl:grid-cols-12">
-                            <div className="xl:col-span-2">
-                                <Typography.Text strong>Direction</Typography.Text>
+            <div className="dp-form-page" data-shortcut-scope="voucher">
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Voucher Header</h3>
+                    </div>
+                    <div className="dp-form-section-body">
+                        <div className="dp-form-grid">
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Direction</label>
                                 <Select
-                                    className="w-full"
-                                    style={{ marginTop: 8 }}
                                     value={data.direction}
                                     onChange={(value) => {
                                         setData((current) => ({
@@ -186,17 +229,16 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                     ]}
                                 />
                             </div>
-                            <div className="xl:col-span-4">
-                                <Typography.Text strong>Payment Date</Typography.Text>
-                                <div style={{ marginTop: 8 }}>
-                                    <BsDateInput value={data.payment_date} onChange={(value) => setData('payment_date', value)} displayBsDates={useBsDates} placeholder="Payment date" />
-                                </div>
+
+                            <div className="dp-field col-span-12 xl:col-span-3">
+                                <label className="dp-field-label">Payment Date</label>
+                                <BsDateInput value={data.payment_date} onChange={(value) => setData('payment_date', value)} displayBsDates={useBsDates} placeholder="Payment date" />
+                                {errors.payment_date ? <span className="dp-error-text">{errors.payment_date}</span> : null}
                             </div>
-                            <div className="xl:col-span-2">
-                                <Typography.Text strong>Method</Typography.Text>
+
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Method</label>
                                 <Select
-                                    className="w-full"
-                                    style={{ marginTop: 8 }}
                                     value={data.method}
                                     onChange={(value) => setData('method', value)}
                                     options={methods.map((method) => ({
@@ -204,39 +246,46 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                         label: method,
                                     }))}
                                 />
+                                {errors.method ? <span className="dp-error-text">{errors.method}</span> : null}
                             </div>
-                            <div className="xl:col-span-2">
-                                <Typography.Text strong>Amount</Typography.Text>
+
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Amount</label>
                                 <InputNumber
                                     id="payment-amount-input"
                                     data-testid="payment-amount"
                                     className="w-full"
-                                    style={{ marginTop: 8 }}
                                     value={Number(data.amount)}
                                     min={0}
                                     step={0.01}
                                     onChange={(value) => setData('amount', String(value ?? ''))}
                                 />
+                                {errors.amount ? <span className="dp-error-text">{errors.amount}</span> : null}
                             </div>
-                            <div className="xl:col-span-2">
-                                <Typography.Text strong>Reference</Typography.Text>
-                                <Input
-                                    style={{ marginTop: 8 }}
-                                    value={data.reference_number ?? ''}
-                                    onChange={(event) => setData('reference_number', event.target.value)}
-                                    placeholder="Voucher ref"
-                                />
+
+                            <div className="dp-field col-span-12 xl:col-span-3">
+                                <label className="dp-field-label">Reference</label>
+                                <Input value={data.reference_number ?? ''} onChange={(event) => setData('reference_number', event.target.value)} placeholder="Voucher reference" />
                             </div>
                         </div>
-                    </Card>
+                    </div>
+                </section>
 
-                    <Card title="Allocation" className="dp-dense-card">
-                        <div className="grid gap-3 xl:grid-cols-2">
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Allocation</h3>
+                        <Space size={6}>
+                            <span className="dp-kbd">{shortcuts.focusAmount}</span>
+                            <span className="dp-kbd">{shortcuts.clearForm}</span>
+                        </Space>
+                    </div>
+                    <div className="dp-form-section-body">
+                        <div className="dp-form-grid">
                             {data.direction === 'received' ? (
                                 <>
-                                    <div>
-                                        <Typography.Text strong>Customer Account</Typography.Text>
-                                        <Space.Compact style={{ width: '100%', marginTop: 8 }}>
+                                    <div className="dp-field col-span-12 xl:col-span-4">
+                                        <label className="dp-field-label">Customer Account</label>
+                                        <Space.Compact style={{ width: '100%' }}>
                                             <div style={{ flex: 1 }}>
                                                 <RemoteLookupSelect<CustomerLookupRecord>
                                                     endpoint={paths.lookups.customers}
@@ -254,169 +303,120 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                                     testId="payment-customer-select"
                                                 />
                                             </div>
-                                            <Button onClick={() => setCustomerModalOpen(true)}>+ Customer</Button>
+                                            <Button onClick={() => setCustomerModalOpen(true)}>Customer</Button>
                                         </Space.Compact>
+                                        {errors.customer_id ? <span className="dp-error-text">{errors.customer_id}</span> : null}
                                     </div>
 
-                                    <div>
-                                        <Typography.Text strong>Against Invoice</Typography.Text>
-                                        <div style={{ marginTop: 8 }}>
-                                            <RemoteLookupSelect<OpenInvoiceRecord>
-                                                endpoint={paths.lookups.openInvoices}
-                                                value={invoiceOption}
-                                                onChange={(option) => {
-                                                    setInvoiceOption(option);
-                                                    setData('invoice_id', option?.record.id ?? null);
-
-                                                    if (option) {
-                                                        setData('customer_id', option.record.customerId);
-                                                        setCustomerOption({
-                                                            value: option.record.customerId,
-                                                            label: option.record.customerName,
-                                                            record: {
-                                                                id: option.record.customerId,
-                                                                name: option.record.customerName,
-                                                            },
-                                                        });
-
-                                                        if (!Number(data.amount)) {
-                                                            setData('amount', String(option.record.balanceDue));
-                                                        }
-                                                    }
-                                                }}
-                                                mapOption={(record) => ({
-                                                    value: Number(record.id),
-                                                    label: `${record.invoiceNumber} (${record.customerName})`,
-                                                    record,
-                                                })}
-                                                placeholder="Search open invoices"
-                                                allowClear
-                                                testId="payment-open-invoice-select"
-                                            />
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div>
-                                    <Typography.Text strong>Supplier Account</Typography.Text>
-                                    <div style={{ marginTop: 8 }}>
-                                        <RemoteLookupSelect<SupplierLookupRecord>
-                                            endpoint={paths.lookups.suppliers}
-                                            value={supplierOption}
+                                    <div className="dp-field col-span-12 xl:col-span-4">
+                                        <label className="dp-field-label">Against Invoice</label>
+                                        <RemoteLookupSelect<OpenInvoiceRecord>
+                                            endpoint={paths.lookups.openInvoices}
+                                            value={invoiceOption}
                                             onChange={(option) => {
-                                                setSupplierOption(option);
-                                                setData('supplier_id', option?.record.id ?? null);
+                                                setInvoiceOption(option);
+                                                setData('invoice_id', option?.record.id ?? null);
+
+                                                if (option) {
+                                                    setData('customer_id', option.record.customerId);
+                                                    setCustomerOption({
+                                                        value: option.record.customerId,
+                                                        label: option.record.customerName,
+                                                        record: {
+                                                            id: option.record.customerId,
+                                                            name: option.record.customerName,
+                                                        },
+                                                    });
+
+                                                    if (!Number(data.amount)) {
+                                                        setData('amount', String(option.record.balanceDue));
+                                                    }
+                                                }
                                             }}
                                             mapOption={(record) => ({
                                                 value: Number(record.id),
-                                                label: record.name,
+                                                label: `${record.invoiceNumber} (${record.customerName})`,
                                                 record,
                                             })}
-                                            placeholder="Search supplier"
-                                            testId="payment-supplier-select"
+                                            placeholder="Search open invoices"
+                                            allowClear
+                                            testId="payment-open-invoice-select"
                                         />
+                                        {errors.invoice_id ? <span className="dp-error-text">{errors.invoice_id}</span> : null}
                                     </div>
+                                </>
+                            ) : (
+                                <div className="dp-field col-span-12 xl:col-span-4">
+                                    <label className="dp-field-label">Supplier Account</label>
+                                    <RemoteLookupSelect<SupplierLookupRecord>
+                                        endpoint={paths.lookups.suppliers}
+                                        value={supplierOption}
+                                        onChange={(option) => {
+                                            setSupplierOption(option);
+                                            setData('supplier_id', option?.record.id ?? null);
+                                        }}
+                                        mapOption={(record) => ({
+                                            value: Number(record.id),
+                                            label: record.name,
+                                            record,
+                                        })}
+                                        placeholder="Search supplier"
+                                        testId="payment-supplier-select"
+                                    />
+                                    {errors.supplier_id ? <span className="dp-error-text">{errors.supplier_id}</span> : null}
                                 </div>
                             )}
 
-                            <div className={data.direction === 'received' ? '' : 'xl:col-span-1'}>
-                                <Typography.Text strong>Notes / Narration</Typography.Text>
+                            <div className="dp-field col-span-12 xl:col-span-4">
+                                <label className="dp-field-label">Notes / Narration</label>
                                 <Input.TextArea
-                                    style={{ marginTop: 8 }}
-                                    rows={4}
+                                    id="payment-notes-field"
+                                    rows={3}
                                     value={data.notes ?? ''}
                                     onChange={(event) => setData('notes', event.target.value)}
                                     placeholder="Narration or payment remarks"
                                 />
+                                {errors.notes ? <span className="dp-error-text">{errors.notes}</span> : null}
                             </div>
                         </div>
 
-                        {Object.values(errors).length ? (
-                            <div style={{ marginTop: 16 }}>
-                                {Object.entries(errors).map(([field, message]) => (
-                                    <Typography.Text key={field} type="danger" style={{ display: 'block' }}>
-                                        {message}
-                                    </Typography.Text>
-                                ))}
-                            </div>
-                        ) : null}
+                        {hasOverpayment ? <div className="dp-error-text">Amount exceeds outstanding by {overpaymentAmount.toFixed(2)}.</div> : null}
+                    </div>
+                </section>
 
-                        {hasOverpayment ? (
-                            <Typography.Text type="danger" style={{ display: 'block', marginTop: 12 }}>
-                                Amount exceeds outstanding by {overpaymentAmount.toFixed(2)}. Reduce amount before saving.
-                            </Typography.Text>
-                        ) : null}
-                    </Card>
-                </Space>
-
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Voucher Summary" className="dp-dense-card">
-                        <Space direction="vertical" size="small" style={{ display: 'flex' }}>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Entry Type</Typography.Text>
-                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {data.direction === 'received' ? 'Receipt' : 'Payment'}
-                                </Typography.Title>
-                                <Tag color={data.direction === 'received' ? 'green' : 'orange'}>{data.direction === 'received' ? 'Receive' : 'Make Payment'}</Tag>
-                            </div>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Party</Typography.Text>
-                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {selectedPartyName || 'Select account'}
-                                </Typography.Title>
-                            </div>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Posting</Typography.Text>
-                                <div className="mt-2 space-y-1">
-                                    <div className="dp-summary-row">
-                                        <span>Date</span>
-                                        <strong>{data.payment_date || '-'}</strong>
-                                    </div>
-                                    <div className="dp-summary-row dp-summary-row-total">
-                                        <span>Method</span>
-                                        <strong>{data.method || '-'}</strong>
-                                    </div>
-                                </div>
-                            </div>
+                <section className="dp-form-section">
+                    <div className="dp-form-section-head">
+                        <h3 className="dp-form-section-title">Summary</h3>
+                        <span>{data.direction === 'received' ? 'Receipt' : 'Payment'}</span>
+                    </div>
+                    <div className="dp-form-section-body">
+                        <div className="dp-summary-grid">
+                            <span>Party</span>
+                            <strong>{selectedPartyName || '-'}</strong>
+                            <span>Amount</span>
+                            <strong>{enteredAmount.toFixed(2)}</strong>
+                            <span>Method</span>
+                            <strong>{data.method || '-'}</strong>
                             {data.direction === 'received' ? (
-                                <div className="dp-queue-card">
-                                    <Typography.Text type="secondary">Invoice Balance</Typography.Text>
-                                    <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                        {invoiceOption?.record.invoiceNumber || 'No linked invoice'}
-                                    </Typography.Title>
-                                    <div className="mt-2 space-y-1">
-                                        <div className="dp-summary-row">
-                                            <span>Outstanding</span>
-                                            <strong>{selectedInvoiceBalance.toFixed(2)}</strong>
-                                        </div>
-                                        <div className="dp-summary-row">
-                                            <span>Posting Now</span>
-                                            <strong>{enteredAmount.toFixed(2)}</strong>
-                                        </div>
-                                        <div className="dp-summary-row dp-summary-row-total">
-                                            <span>Balance Left</span>
-                                            <strong>{Math.max(balanceAfterPosting, 0).toFixed(2)}</strong>
-                                        </div>
-                                        {hasOverpayment ? (
-                                            <div className="dp-summary-row">
-                                                <span>Over by</span>
-                                                <strong>{overpaymentAmount.toFixed(2)}</strong>
-                                            </div>
-                                        ) : null}
-                                    </div>
-                                </div>
+                                <>
+                                    <span>Outstanding</span>
+                                    <strong>{selectedInvoiceBalance.toFixed(2)}</strong>
+                                    <span className="dp-summary-total">Balance Left</span>
+                                    <strong className="dp-summary-total">{Math.max(balanceAfterPosting, 0).toFixed(2)}</strong>
+                                </>
                             ) : null}
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Shortcut Strip</Typography.Text>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                    <span className="dp-kbd">Ctrl+S</span>
-                                    {data.direction === 'received' ? <span className="dp-kbd">Alt+C</span> : null}
-                                    {data.direction === 'received' ? <span className="dp-kbd">Alt+I</span> : null}
-                                </div>
-                            </div>
-                        </Space>
-                    </Card>
-                </Space>
+                        </div>
+
+                        <div style={{ marginTop: 8 }}>
+                            <Space size={6} wrap>
+                                <span className="dp-kbd">{shortcuts.save}</span>
+                                <span className="dp-kbd">{shortcuts.addCustomer}</span>
+                                <span className="dp-kbd">{shortcuts.searchInvoice}</span>
+                                <span className="dp-kbd">{shortcuts.notesField}</span>
+                            </Space>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <QuickAddCustomerModal

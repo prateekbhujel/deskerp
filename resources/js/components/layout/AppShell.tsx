@@ -4,17 +4,20 @@ import {
     DatabaseOutlined,
     FileTextOutlined,
     LineChartOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
     SettingOutlined,
     ShopOutlined,
     SwapOutlined,
     ToolOutlined,
 } from '@ant-design/icons';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { paths } from '@/lib/paths';
+import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
+import { paths, withQuery } from '@/lib/paths';
 import { SharedProps } from '@/types/shared';
 import { Link, router, usePage } from '@inertiajs/react';
-import { App as AntApp, Button, Layout, Space, Tag, Typography } from 'antd';
-import { PropsWithChildren, ReactNode, useEffect, useMemo } from 'react';
+import { Button, Input, Layout, Space, Typography } from 'antd';
+import { PropsWithChildren, ReactNode, useMemo, useState } from 'react';
 
 const { Header, Sider, Content } = Layout;
 
@@ -23,6 +26,7 @@ interface AppShellProps extends PropsWithChildren {
     subtitle?: string;
     activeKey: string;
     extra?: ReactNode;
+    mode?: string;
 }
 
 interface NavItem {
@@ -34,19 +38,13 @@ interface NavItem {
     native?: boolean;
 }
 
-export function AppShell({ title, subtitle, activeKey, extra, children }: AppShellProps) {
+export function AppShell({ title, subtitle, activeKey, extra, children, mode }: AppShellProps) {
     const page = usePage<SharedProps>();
-    const { message } = AntApp.useApp();
+    const { isMac, shortcuts } = usePlatformShortcuts();
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [invoiceSearch, setInvoiceSearch] = useState('');
 
-    useEffect(() => {
-        if (page.props.flash.success) {
-            message.success(page.props.flash.success);
-        }
-
-        if (page.props.flash.error) {
-            message.error(page.props.flash.error);
-        }
-    }, [message, page.props.flash.error, page.props.flash.success]);
+    const altLabel = (key: string) => (isMac ? `⌥${key.toUpperCase()}` : `Alt+${key.toUpperCase()}`);
 
     const navSections = useMemo(
         () =>
@@ -54,45 +52,45 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
                 {
                     title: 'Workspace',
                     items: [
-                        { key: 'dashboard', label: 'Dashboard', href: paths.dashboard, shortcut: 'Alt+D', icon: <AppstoreOutlined /> },
-                        { key: 'reports', label: 'Reports', href: paths.reports.index, shortcut: 'Alt+R', icon: <LineChartOutlined /> },
+                        { key: 'dashboard', label: 'Dashboard', href: paths.dashboard, shortcut: altLabel('d'), icon: <AppstoreOutlined /> },
+                        { key: 'reports', label: 'Reports', href: paths.reports.index, shortcut: shortcuts.reports, icon: <LineChartOutlined /> },
                     ],
                 },
                 {
                     title: 'Masters',
                     items: [
-                        { key: 'customers', label: 'Customers', href: paths.customers.index, shortcut: 'Alt+K', icon: <ShopOutlined />, native: true },
-                        { key: 'suppliers', label: 'Suppliers', href: paths.suppliers.index, shortcut: 'Alt+U', icon: <SwapOutlined />, native: true },
-                        { key: 'items', label: 'Items & Pricing', href: paths.items.index, shortcut: 'Alt+M', icon: <DatabaseOutlined /> },
+                        { key: 'customers', label: 'Customers', href: paths.customers.index, shortcut: altLabel('k'), icon: <ShopOutlined />, native: true },
+                        { key: 'suppliers', label: 'Suppliers', href: paths.suppliers.index, shortcut: altLabel('u'), icon: <SwapOutlined />, native: true },
+                        { key: 'items', label: 'Inventory & Pricing', href: paths.items.index, shortcut: altLabel('m'), icon: <DatabaseOutlined /> },
                     ] satisfies NavItem[],
                 },
                 {
                     title: 'Transactions',
                     items: [
-                        { key: 'invoices', label: 'Invoices', href: paths.invoices.index, shortcut: 'Alt+V', icon: <BookOutlined /> },
-                        { key: 'payments', label: 'Payments', href: paths.payments.index, shortcut: 'Alt+P', icon: <FileTextOutlined /> },
+                        { key: 'invoices', label: 'Invoices', href: paths.invoices.index, shortcut: shortcuts.searchInvoice, icon: <BookOutlined /> },
+                        { key: 'payments', label: 'Payments', href: paths.payments.index, shortcut: shortcuts.newPayment, icon: <FileTextOutlined /> },
                     ] satisfies NavItem[],
                 },
                 {
                     title: 'System',
                     items: [
-                        { key: 'settings', label: 'Settings', href: paths.settings, shortcut: 'Alt+S', icon: <SettingOutlined /> },
-                        { key: 'backups', label: 'Backup / Restore', href: paths.backups, shortcut: 'Alt+B', icon: <ToolOutlined /> },
+                        { key: 'settings', label: 'Settings', href: paths.settings, shortcut: altLabel('s'), icon: <SettingOutlined /> },
+                        { key: 'backups', label: 'Backup / Restore', href: paths.backups, shortcut: altLabel('b'), icon: <ToolOutlined /> },
                     ] satisfies NavItem[],
                 },
             ] as Array<{ title: string; items: NavItem[] }>,
-        [],
+        [isMac, shortcuts.newPayment, shortcuts.reports, shortcuts.searchInvoice],
     );
 
-    const todayLabel = useMemo(
-        () =>
-            new Intl.DateTimeFormat('en-NP', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-            }).format(new Date()),
-        [],
-    );
+    const currentMode = mode ?? 'Posted';
+    const fiscalLabel = page.props.settings.fiscalYear.label ? `FY ${page.props.settings.fiscalYear.label}` : 'FY Not Set';
+
+    const submitInvoiceSearch = () => {
+        router.visit(withQuery(paths.invoices.index, { q: invoiceSearch }), {
+            preserveState: false,
+            preserveScroll: true,
+        });
+    };
 
     useKeyboardShortcuts([
         {
@@ -140,8 +138,15 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
             },
         },
         {
+            key: '\\',
+            alt: true,
+            allowInInputs: true,
+            handler: () => setSidebarCollapsed((current) => !current),
+        },
+        {
             key: 'k',
             alt: true,
+            allowInInputs: true,
             handler: () => {
                 window.location.href = paths.customers.index;
             },
@@ -154,16 +159,22 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
             },
         },
         {
-            key: '/',
+            key: 'i',
+            alt: true,
+            allowInInputs: true,
             handler: () => {
+                if (document.querySelector('[data-shortcut-scope="voucher"]')) {
+                    return;
+                }
+
                 const target = document.querySelector<HTMLInputElement>('[data-global-search="true"]');
                 target?.focus();
                 target?.select();
             },
         },
         {
-            key: 'f',
-            alt: true,
+            key: '/',
+            allowInInputs: true,
             handler: () => {
                 const target = document.querySelector<HTMLInputElement>('[data-global-search="true"]');
                 target?.focus();
@@ -174,52 +185,51 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
 
     return (
         <Layout className="dp-shell" style={{ minHeight: '100vh' }}>
-            <Sider width={274} breakpoint="lg" collapsedWidth={0} theme="dark" style={{ background: '#0f172a', borderRight: '1px solid rgba(148, 163, 184, 0.2)' }}>
-                <div className="px-4 py-4">
-                    <div className="rounded-2xl border border-slate-700/80 bg-slate-900/85 px-4 py-4">
-                        <Typography.Text style={{ color: '#94a3b8', letterSpacing: '0.16em', textTransform: 'uppercase', fontSize: 11 }}>
-                            DeskERP
-                        </Typography.Text>
-                        <Typography.Title level={4} style={{ color: 'white', margin: '8px 0 0' }}>
-                            {page.props.settings.companyName || 'DeskERP'}
-                        </Typography.Title>
-                        <Space wrap style={{ marginTop: 10 }}>
-                            <Tag color="geekblue">{page.props.auth.user?.name ?? 'Admin'}</Tag>
-                            {page.props.settings.fiscalYear.label ? <Tag color="cyan">FY {page.props.settings.fiscalYear.label}</Tag> : null}
-                            <Tag color="default">v{page.props.appVersion}</Tag>
-                        </Space>
+            <Sider width={238} collapsed={sidebarCollapsed} collapsedWidth={54} theme="dark" trigger={null} style={{ background: '#0b1020' }}>
+                <div className="dp-sidebar">
+                    <div className="dp-sidebar-brand">
+                        {!sidebarCollapsed ? (
+                            <>
+                                <Typography.Text style={{ color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase', fontSize: 11 }}>
+                                    DeskERP
+                                </Typography.Text>
+                                <Typography.Title level={5} style={{ color: 'white', margin: '4px 0 0' }}>
+                                    {page.props.settings.companyName || 'DeskERP'}
+                                </Typography.Title>
+                            </>
+                        ) : (
+                            <Typography.Text style={{ color: 'white', fontWeight: 700 }}>DP</Typography.Text>
+                        )}
                     </div>
 
-                    <div className="mt-3 space-y-2">
-                        <Button block type="primary" onClick={() => router.visit(paths.invoices.create)}>
-                            New Invoice
-                        </Button>
-                        <Button block onClick={() => router.visit(paths.payments.createReceived)}>
-                            Receive Payment
-                        </Button>
-                        <Button block onClick={() => router.visit(paths.payments.createMade)}>
-                            Make Payment
-                        </Button>
-                        <Button block onClick={() => router.visit(paths.items.create)}>
-                            Add Item
-                        </Button>
-                    </div>
+                    {!sidebarCollapsed ? (
+                        <div className="dp-sidebar-quick">
+                            <Button size="small" type="primary" onClick={() => router.visit(paths.invoices.create)}>
+                                New Invoice <span className="dp-kbd">{shortcuts.newInvoice}</span>
+                            </Button>
+                            <Button size="small" onClick={() => router.visit(paths.payments.createReceived)}>
+                                Payment <span className="dp-kbd">{shortcuts.newPayment}</span>
+                            </Button>
+                        </div>
+                    ) : null}
 
-                    <div className="mt-5 space-y-5">
+                    <div className="mt-2 space-y-4">
                         {navSections.map((section) => (
                             <div key={section.title}>
-                                <Typography.Text style={{ color: '#94a3b8', letterSpacing: '0.16em', textTransform: 'uppercase', fontSize: 11 }}>
-                                    {section.title}
-                                </Typography.Text>
-                                <div className="mt-2 space-y-1.5">
+                                {!sidebarCollapsed ? (
+                                    <Typography.Text style={{ color: '#64748b', letterSpacing: '0.14em', textTransform: 'uppercase', fontSize: 10 }}>
+                                        {section.title}
+                                    </Typography.Text>
+                                ) : null}
+                                <div className={sidebarCollapsed ? 'mt-1 space-y-1' : 'mt-1.5 space-y-1'}>
                                     {section.items.map((item) => {
                                         const content = (
                                             <div className={`dp-nav-link ${activeKey === item.key ? 'dp-nav-link-active' : ''}`} data-active={activeKey === item.key ? 'true' : 'false'}>
                                                 <span className="dp-nav-link__main">
                                                     <span className="dp-nav-link__icon">{item.icon}</span>
-                                                    <span>{item.label}</span>
+                                                    {!sidebarCollapsed ? <span>{item.label}</span> : null}
                                                 </span>
-                                                <span className="dp-kbd">{item.shortcut}</span>
+                                                {!sidebarCollapsed ? <span className="dp-kbd">{item.shortcut}</span> : null}
                                             </div>
                                         );
 
@@ -237,57 +247,81 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
                             </div>
                         ))}
                     </div>
+
+                    <div className="dp-sidebar-footer">
+                        {!sidebarCollapsed ? (
+                            <Typography.Text style={{ color: '#94a3b8', fontSize: 11 }}>
+                                {fiscalLabel} | {page.props.auth.user?.name ?? 'Admin'}
+                            </Typography.Text>
+                        ) : null}
+                    </div>
                 </div>
             </Sider>
 
             <Layout>
-                <Header
-                    style={{
-                        background: 'rgba(255,255,255,0.9)',
-                        padding: '10px 16px 12px',
-                        height: 'auto',
-                        lineHeight: 1.4,
-                        borderBottom: '1px solid #cbd5e1',
-                        backdropFilter: 'blur(14px)',
-                    }}
-                >
-                    <div className="space-y-3">
-                        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                            <Space wrap size={[8, 8]}>
-                                <Tag color="geekblue">{page.props.settings.companyName || 'DeskERP'}</Tag>
-                                <Tag color={page.props.settings.displayBsDates ? 'green' : 'default'}>{page.props.settings.displayBsDates ? 'BS Dates' : 'AD Dates'}</Tag>
-                                {page.props.settings.fiscalYear.label ? <Tag color="purple">FY {page.props.settings.fiscalYear.label}</Tag> : null}
-                                <Tag color="gold">Today {todayLabel}</Tag>
+                <Header className="dp-topbar">
+                    <div className="dp-topbar-row">
+                        <div className="dp-topbar-left">
+                            <Button size="small" onClick={() => setSidebarCollapsed((current) => !current)}>
+                                {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                            </Button>
+                            <Space size={6} wrap>
+                                <Button size="small" type="primary" onClick={() => router.visit(paths.invoices.create)}>
+                                    Invoice <span className="dp-kbd">{shortcuts.newInvoice}</span>
+                                </Button>
+                                <Button size="small" onClick={() => router.visit(paths.payments.createReceived)}>
+                                    Payment <span className="dp-kbd">{shortcuts.newPayment}</span>
+                                </Button>
+                                <Button size="small" onClick={() => router.visit(paths.reports.index)}>
+                                    Reports <span className="dp-kbd">{shortcuts.reports}</span>
+                                </Button>
                             </Space>
-
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                                <span className="dp-kbd">Alt+N</span>
-                                <span>Invoice</span>
-                                <span className="dp-kbd">Alt+P</span>
-                                <span>Payment</span>
-                                <span className="dp-kbd">Alt+R</span>
-                                <span>Reports</span>
-                                <span className="dp-kbd">/</span>
-                                <span>Search</span>
-                            </div>
                         </div>
 
-                        <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                            <div>
-                                <div data-testid="app-shell-title">
-                                    <Typography.Title level={3} style={{ margin: 0 }}>
-                                        {title}
-                                    </Typography.Title>
-                                </div>
-                                {subtitle ? <Typography.Text type="secondary">{subtitle}</Typography.Text> : null}
-                            </div>
-
-                            {extra ? <Space wrap size={[8, 8]}>{extra}</Space> : null}
+                        <div className="dp-topbar-search">
+                            <Input
+                                size="small"
+                                data-global-search="true"
+                                value={invoiceSearch}
+                                onChange={(event) => setInvoiceSearch(event.target.value)}
+                                onPressEnter={submitInvoiceSearch}
+                                placeholder={`Search invoice (${shortcuts.searchInvoice})`}
+                            />
                         </div>
+                    </div>
+
+                    <div className="dp-topbar-row">
+                        <div>
+                            <div data-testid="app-shell-title">
+                                <Typography.Title level={4} style={{ margin: 0 }}>
+                                    {title}
+                                </Typography.Title>
+                            </div>
+                            {subtitle ? <Typography.Text type="secondary">{subtitle}</Typography.Text> : null}
+                        </div>
+                        {extra ? <Space wrap size={[6, 6]}>{extra}</Space> : null}
                     </div>
                 </Header>
 
-                <Content style={{ padding: 14 }}>{children}</Content>
+                <Content className="dp-content">
+                    {page.props.flash.success ? (
+                        <div className="dp-inline-message dp-inline-message-success">{page.props.flash.success}</div>
+                    ) : null}
+                    {page.props.flash.error ? (
+                        <div className="dp-inline-message dp-inline-message-error">{page.props.flash.error}</div>
+                    ) : null}
+                    {children}
+                </Content>
+
+                <div className="dp-status-bar">
+                    <span>{fiscalLabel}</span>
+                    <span>|</span>
+                    <span>{page.props.auth.user?.name ?? 'Admin'}</span>
+                    <span>|</span>
+                    <span>{currentMode}</span>
+                    <span>|</span>
+                    <span>{shortcuts.toggleSidebar} Sidebar</span>
+                </div>
             </Layout>
         </Layout>
     );

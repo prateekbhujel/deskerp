@@ -31,9 +31,9 @@ createInertiaApp({
                 theme={{
                     token: {
                         colorPrimary: '#0f766e',
-                        borderRadius: 8,
-                        fontFamily: "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
-                        fontSize: 13,
+                        borderRadius: 0,
+                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                        fontSize: 12,
                     },
                 }}
             >
