@@ -101,7 +101,6 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
         transform((currentData) => ({
             ...currentData,
             status,
-            lines: currentData.lines.filter((line) => line.description.trim() || line.item_id),
             due_date: currentData.due_date || null,
             reference_number: currentData.reference_number || null,
             notes: currentData.notes || null,
