@@ -8,6 +8,7 @@ use App\Models\Item;
 use App\Models\Payment;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -31,6 +32,7 @@ class AccountingWorkflowHttpTest extends TestCase
             'track_inventory' => true,
             'is_active' => true,
         ]);
+        app(InventoryService::class)->syncOpeningStock($item, 50);
 
         $response = $this->actingAs($user)->post('/invoices', [
             'customer_id' => $customer->id,

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\InventoryService;
 use App\Services\InvoiceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class StockChangeTest extends TestCase
@@ -73,5 +74,51 @@ class StockChangeTest extends TestCase
 
         $item->refresh();
         $this->assertSame('10.000', (string) $item->current_stock);
+    }
+
+    public function test_final_invoice_cannot_oversell_inventory(): void
+    {
+        $user = User::factory()->create();
+        $customer = Customer::query()->create(['name' => 'Stock Check']);
+        $unit = Unit::query()->create(['name' => 'Piece', 'code' => 'PCS', 'is_active' => true]);
+        $item = Item::query()->create([
+            'unit_id' => $unit->id,
+            'name' => 'Monitor',
+            'item_type' => 'stockable',
+            'base_price' => 200,
+            'selling_price' => 250,
+            'tax_rate' => 0,
+            'allow_discount' => true,
+            'track_inventory' => true,
+            'is_active' => true,
+        ]);
+
+        app(InventoryService::class)->syncOpeningStock($item, 2);
+
+        try {
+            app(InvoiceService::class)->store([
+                'customer_id' => $customer->id,
+                'issue_date' => now()->toDateString(),
+                'status' => 'final',
+                'lines' => [
+                    [
+                        'item_id' => $item->id,
+                        'description' => 'Monitor',
+                        'unit_name' => 'PCS',
+                        'quantity' => 10,
+                        'rate' => 250,
+                        'discount_percent' => 0,
+                        'tax_percent' => 0,
+                    ],
+                ],
+            ], $user);
+
+            $this->fail('Expected inventory validation exception was not thrown.');
+        } catch (ValidationException $exception) {
+            $this->assertStringContainsString('Insufficient stock', $exception->errors()['lines'][0] ?? '');
+        }
+
+        $item->refresh();
+        $this->assertSame('2.000', (string) $item->current_stock);
     }
 }
