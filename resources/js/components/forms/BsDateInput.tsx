@@ -49,7 +49,7 @@ export function BsDateInput({ value, onChange, displayBsDates, placeholder, disa
                         value: year,
                         label: String(year),
                     }))}
-                    style={{ minWidth: 110 }}
+                    style={{ width: '32%' }}
                     placeholder={placeholder}
                 />
                 <Select
@@ -60,7 +60,7 @@ export function BsDateInput({ value, onChange, displayBsDates, placeholder, disa
                         value: index + 1,
                         label: month,
                     }))}
-                    style={{ minWidth: 140 }}
+                    style={{ width: '42%' }}
                 />
                 <Select
                     value={current.day}
@@ -70,7 +70,7 @@ export function BsDateInput({ value, onChange, displayBsDates, placeholder, disa
                         value: day,
                         label: String(day),
                     }))}
-                    style={{ minWidth: 90 }}
+                    style={{ width: '26%' }}
                 />
             </Space.Compact>
         );

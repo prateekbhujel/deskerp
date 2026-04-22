@@ -77,7 +77,7 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
                     title: 'System',
                     items: [
                         { key: 'settings', label: 'Settings', href: paths.settings, shortcut: 'Alt+S', icon: <SettingOutlined /> },
-                        { key: 'backups', label: 'Backup / Restore', href: paths.backups, shortcut: 'Alt+B', icon: <ToolOutlined />, native: true },
+                        { key: 'backups', label: 'Backup / Restore', href: paths.backups, shortcut: 'Alt+B', icon: <ToolOutlined /> },
                     ] satisfies NavItem[],
                 },
             ] as Array<{ title: string; items: NavItem[] }>,
@@ -136,7 +136,7 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
             key: 'b',
             alt: true,
             handler: () => {
-                window.location.href = paths.backups;
+                router.visit(paths.backups);
             },
         },
         {
@@ -262,13 +262,13 @@ export function AppShell({ title, subtitle, activeKey, extra, children }: AppShe
 
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                                 <span className="dp-kbd">Alt+N</span>
-                                <span>invoice</span>
+                                <span>Invoice</span>
                                 <span className="dp-kbd">Alt+P</span>
-                                <span>payment</span>
+                                <span>Payment</span>
                                 <span className="dp-kbd">Alt+R</span>
-                                <span>reports</span>
+                                <span>Reports</span>
                                 <span className="dp-kbd">/</span>
-                                <span>search</span>
+                                <span>Search</span>
                             </div>
                         </div>
 

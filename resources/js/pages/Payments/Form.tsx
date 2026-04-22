@@ -149,7 +149,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
     return (
         <AppShell
             title={mode === 'create' ? 'New Payment Entry' : 'Edit Payment Entry'}
-            subtitle="Ctrl+S save, Alt+C add customer, Alt+I search open invoice."
+            subtitle={data.direction === 'received' ? 'Ctrl+S save, Alt+C add customer, Alt+I search open invoice.' : 'Ctrl+S save payment voucher.'}
             activeKey="payments"
             extra={
                 <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
@@ -160,8 +160,8 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
             <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
                 <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
                     <Card title="Payment Header" className="dp-dense-card">
-                        <div className="grid gap-3 xl:grid-cols-5">
-                            <div>
+                        <div className="grid gap-3 xl:grid-cols-12">
+                            <div className="xl:col-span-2">
                                 <Typography.Text strong>Direction</Typography.Text>
                                 <Select
                                     className="w-full"
@@ -186,13 +186,13 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                     ]}
                                 />
                             </div>
-                            <div>
+                            <div className="xl:col-span-4">
                                 <Typography.Text strong>Payment Date</Typography.Text>
                                 <div style={{ marginTop: 8 }}>
                                     <BsDateInput value={data.payment_date} onChange={(value) => setData('payment_date', value)} displayBsDates={useBsDates} placeholder="Payment date" />
                                 </div>
                             </div>
-                            <div>
+                            <div className="xl:col-span-2">
                                 <Typography.Text strong>Method</Typography.Text>
                                 <Select
                                     className="w-full"
@@ -205,7 +205,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                     }))}
                                 />
                             </div>
-                            <div>
+                            <div className="xl:col-span-2">
                                 <Typography.Text strong>Amount</Typography.Text>
                                 <InputNumber
                                     id="payment-amount-input"
@@ -218,7 +218,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                     onChange={(value) => setData('amount', String(value ?? ''))}
                                 />
                             </div>
-                            <div>
+                            <div className="xl:col-span-2">
                                 <Typography.Text strong>Reference</Typography.Text>
                                 <Input style={{ marginTop: 8 }} value={data.reference_number ?? ''} onChange={(event) => setData('reference_number', event.target.value)} />
                             </div>
@@ -386,13 +386,10 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 <Typography.Text type="secondary">Shortcut Strip</Typography.Text>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                     <span className="dp-kbd">Ctrl+S</span>
-                                    <span className="dp-kbd">Alt+C</span>
-                                    <span className="dp-kbd">Alt+I</span>
+                                    {data.direction === 'received' ? <span className="dp-kbd">Alt+C</span> : null}
+                                    {data.direction === 'received' ? <span className="dp-kbd">Alt+I</span> : null}
                                 </div>
                             </div>
-                            <Typography.Text type="secondary">
-                                Overpayment checks and invoice balance updates are applied automatically on save.
-                            </Typography.Text>
                         </Space>
                     </Card>
                 </Space>

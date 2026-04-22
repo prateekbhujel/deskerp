@@ -44,6 +44,8 @@ export const paths = {
     },
     settings: '/settings',
     backups: '/backups',
+    backupsDownload: '/backups/download',
+    backupsRestore: '/backups/restore',
     lookups: {
         customers: '/api/lookups/customers',
         suppliers: '/api/lookups/suppliers',

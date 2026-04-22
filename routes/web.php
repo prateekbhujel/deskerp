@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('reports/suppliers/{supplier}/ledger', [ReportController::class, 'supplierLedger'])->name('reports.suppliers.ledger');
 
     Route::get('backups', [BackupController::class, 'index'])->name('backups.index');
+    Route::get('backups/download', [BackupController::class, 'download'])->name('backups.download');
     Route::post('backups', [BackupController::class, 'store'])->name('backups.store');
     Route::post('backups/restore', [BackupController::class, 'restore'])->name('backups.restore');
 
