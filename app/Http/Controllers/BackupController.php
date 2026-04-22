@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Services\BackupService;
-use Illuminate\Contracts\View\View;
+use Illuminate\Http\BinaryFileResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BackupController extends Controller
 {
@@ -13,18 +15,30 @@ class BackupController extends Controller
         private readonly BackupService $backupService,
     ) {}
 
-    public function index(): View
+    public function index(): Response
     {
-        return view('backups.index', [
-            'backups' => $this->backupService->listBackups(),
+        return Inertia::render('Backups/Index', [
+            'backups' => collect($this->backupService->listBackups())
+                ->map(fn (array $backup): array => [
+                    'name' => $backup['name'],
+                    'size' => $backup['size'],
+                    'modified_at' => $backup['modified_at'],
+                ])
+                ->values()
+                ->all(),
         ]);
     }
 
-    public function store()
+    public function download(): BinaryFileResponse
     {
         $path = $this->backupService->createBackup();
 
         return response()->download($path, basename($path));
+    }
+
+    public function store(): BinaryFileResponse
+    {
+        return $this->download();
     }
 
     public function restore(Request $request): RedirectResponse

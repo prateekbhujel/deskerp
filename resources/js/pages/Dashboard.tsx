@@ -51,7 +51,7 @@ export default function Dashboard({ stats, recentInvoices, recentPayments, lowSt
     return (
         <AppShell
             title="Dashboard"
-            subtitle="Daily operations, receivables, stock alerts, and quick voucher entry."
+            subtitle="Business summary and daily operations."
             activeKey="dashboard"
             extra={
                 <Space wrap>
@@ -78,8 +78,8 @@ export default function Dashboard({ stats, recentInvoices, recentPayments, lowSt
                         message="Setup Required"
                         description={
                             <Space direction="vertical" size={4}>
-                                <Typography.Text>Complete settings before regular billing: {setupMissing}.</Typography.Text>
-                                <Link href={paths.settings}>Open Settings</Link>
+                                <Typography.Text>Complete settings before billing: {setupMissing}.</Typography.Text>
+                                <Link href={paths.settings}>Complete Setup</Link>
                             </Space>
                         }
                     />
@@ -225,28 +225,28 @@ export default function Dashboard({ stats, recentInvoices, recentPayments, lowSt
                                 <button className="dp-command-card" onClick={() => router.visit(paths.invoices.create)} type="button">
                                     <span>
                                         <strong>New Invoice</strong>
-                                        <small>Create and finalize a sales invoice.</small>
+                                        <small>Create a sales invoice.</small>
                                     </span>
                                     <span className="dp-kbd">Alt+N</span>
                                 </button>
                                 <button className="dp-command-card" onClick={() => router.visit(paths.payments.createReceived)} type="button">
                                     <span>
                                         <strong>Receive Payment</strong>
-                                        <small>Record receipt and link outstanding invoice.</small>
+                                        <small>Record receipt against an invoice.</small>
                                     </span>
                                     <span className="dp-kbd">Alt+P</span>
                                 </button>
                                 <button className="dp-command-card" onClick={() => router.visit(paths.items.create)} type="button">
                                     <span>
                                         <strong>Add Item</strong>
-                                        <small>Update item pricing and opening stock.</small>
+                                        <small>Add item pricing and opening stock.</small>
                                     </span>
                                     <span className="dp-kbd">Alt+M</span>
                                 </button>
                                 <button className="dp-command-card" onClick={() => router.visit(paths.reports.index)} type="button">
                                     <span>
                                         <strong>Open Reports</strong>
-                                        <small>Sales, payment, inventory, and ledger exports.</small>
+                                        <small>Sales, payment, inventory, and ledgers.</small>
                                     </span>
                                     <span className="dp-kbd">Alt+R</span>
                                 </button>

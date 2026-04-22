@@ -231,6 +231,18 @@
         @apply border-teal-500/40 bg-teal-500/15 text-teal-100;
     }
 
+    .dp-nav-link .dp-kbd {
+        border-color: rgba(148, 163, 184, 0.35);
+        background: rgba(30, 41, 59, 0.75);
+        color: rgb(226 232 240);
+    }
+
+    .dp-nav-link-active .dp-kbd {
+        border-color: rgba(45, 212, 191, 0.55);
+        background: rgba(20, 184, 166, 0.2);
+        color: rgb(240 253 250);
+    }
+
     .dp-summary-row {
         @apply flex items-center justify-between gap-3 border-b border-slate-200 pb-2 text-sm text-slate-600;
     }
