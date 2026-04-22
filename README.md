@@ -102,31 +102,37 @@ APP_VERSION="0.2.0"
 
 The desktop wrapper remains isolated in `desktop/`.
 
-Install desktop dependencies when you need the wrapper:
+Install desktop dependencies from project root:
+
+```bash
+npm run desktop:install
+```
+
+Run Electron against an already-running local Laravel server from project root:
+
+```bash
+npm run desktop:dev
+```
+
+Run Electron with managed Laravel server startup from project root:
+
+```bash
+npm run desktop:dev:managed
+```
+
+Build the Windows portable package from project root:
+
+```bash
+npm run desktop:package:win
+```
+
+You can still run desktop commands directly inside `desktop/`:
 
 ```bash
 cd desktop
 npm install
-```
-
-Run Electron against an already-running local Laravel server:
-
-```bash
-cd desktop
 npm run dev
-```
-
-Run Electron with the managed Laravel server behavior:
-
-```bash
-cd desktop
 npm run dev:managed
-```
-
-Build the Windows portable package later from the wrapper directory:
-
-```bash
-cd desktop
 npm run package:win
 ```
 
