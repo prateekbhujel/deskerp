@@ -266,7 +266,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     data-invoice-cell="true"
                     className="w-full"
                     value={Number(line.quantity)}
-                    min={0}
+                    min={0.001}
                     step={0.001}
                     onChange={(value) => updateLine(index, { quantity: String(value ?? '') })}
                     onKeyDown={handleGridKeyDown}
