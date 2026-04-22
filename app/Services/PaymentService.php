@@ -44,6 +44,12 @@ class PaymentService
                 ? Invoice::query()->findOrFail($data['invoice_id'])
                 : null;
 
+            if ($invoice && $invoice->status !== 'final') {
+                throw ValidationException::withMessages([
+                    'invoice_id' => 'Payment can only be linked to finalized invoices.',
+                ]);
+            }
+
             if (! $payment->exists) {
                 $payment->payment_number = $this->sequenceService->nextPaymentNumber($data['direction']);
             }

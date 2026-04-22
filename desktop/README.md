@@ -10,6 +10,25 @@ This folder isolates the Electron wrapper from the main Laravel application.
 
 ## Development Modes
 
+Preferred from the project root:
+
+```bash
+npm run desktop:install
+npm run desktop:dev
+```
+
+Managed Laravel startup from root:
+
+```bash
+npm run desktop:dev:managed
+```
+
+Windows packaging from root:
+
+```bash
+npm run desktop:package:win
+```
+
 If Laravel is already running locally:
 
 ```bash

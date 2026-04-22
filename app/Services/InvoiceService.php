@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\Item;
 use App\Models\User;
 use App\Support\Decimal;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +73,7 @@ class InvoiceService
             }
 
             $status = $data['status'] ?? 'draft';
+            $this->validateInventoryAvailability($invoice, $calculated['lines'], $status);
 
             $invoice->fill([
                 'customer_id' => $customer->id,
@@ -111,5 +113,62 @@ class InvoiceService
 
             return $this->refreshBalances($invoice);
         });
+    }
+
+    private function validateInventoryAvailability(Invoice $invoice, array $lines, string $status): void
+    {
+        if ($status !== 'final') {
+            return;
+        }
+
+        $requiredByItem = collect($lines)
+            ->filter(fn (array $line): bool => ! empty($line['item_id']))
+            ->groupBy('item_id')
+            ->map(fn ($group) => Decimal::add($group->pluck('quantity')->all(), 3));
+
+        if ($requiredByItem->isEmpty()) {
+            return;
+        }
+
+        $items = Item::query()
+            ->whereIn('id', $requiredByItem->keys())
+            ->where('track_inventory', true)
+            ->get()
+            ->keyBy('id');
+
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $previousByItem = collect();
+
+        if ($invoice->exists && $invoice->status === 'final') {
+            $invoice->loadMissing('lines');
+
+            $previousByItem = $invoice->lines
+                ->whereNotNull('item_id')
+                ->groupBy('item_id')
+                ->map(fn ($group) => Decimal::add($group->pluck('quantity')->all(), 3));
+        }
+
+        $messages = [];
+
+        foreach ($items as $item) {
+            $required = (string) $requiredByItem->get($item->id, '0.000');
+            $available = Decimal::add([
+                (string) $item->current_stock,
+                (string) $previousByItem->get($item->id, '0.000'),
+            ], 3);
+
+            if (Decimal::compare($required, $available) > 0) {
+                $messages[] = "Insufficient stock for {$item->name}. Required {$required}, available {$available}.";
+            }
+        }
+
+        if ($messages !== []) {
+            throw ValidationException::withMessages([
+                'lines' => implode(' ', $messages),
+            ]);
+        }
     }
 }

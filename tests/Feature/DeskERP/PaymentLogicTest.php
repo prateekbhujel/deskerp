@@ -92,4 +92,41 @@ class PaymentLogicTest extends TestCase
             'amount' => 150,
         ]);
     }
+
+    public function test_payment_cannot_be_linked_to_draft_invoice(): void
+    {
+        $customer = Customer::query()->create(['name' => 'Draft Check']);
+
+        $invoice = Invoice::query()->create([
+            'customer_id' => $customer->id,
+            'invoice_number' => 'INV-00003',
+            'status' => 'draft',
+            'payment_status' => 'unpaid',
+            'issue_date' => now()->toDateString(),
+            'customer_name' => $customer->name,
+            'subtotal' => 100,
+            'discount_total' => 0,
+            'tax_total' => 0,
+            'total' => 100,
+            'paid_total' => 0,
+            'balance_due' => 100,
+        ]);
+
+        try {
+            app(PaymentService::class)->store([
+                'direction' => 'received',
+                'invoice_id' => $invoice->id,
+                'payment_date' => now()->toDateString(),
+                'method' => 'cash',
+                'amount' => 20,
+            ]);
+
+            $this->fail('Expected draft invoice validation exception was not thrown.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                'Payment can only be linked to finalized invoices.',
+                $exception->errors()['invoice_id'][0] ?? ''
+            );
+        }
+    }
 }
