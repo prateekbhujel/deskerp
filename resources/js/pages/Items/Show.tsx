@@ -3,7 +3,7 @@ import { formatDisplayDate, formatMoney, formatQuantity } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { SharedProps } from '@/types/shared';
 import { Link, usePage } from '@inertiajs/react';
-import { Button, Card, Descriptions, Space, Table, Tag } from 'antd';
+import { Button, Table } from 'antd';
 
 interface ItemsShowProps {
     item: {
@@ -44,76 +44,109 @@ export default function ItemsShow({ item }: ItemsShowProps) {
     const useBsDates = page.props.settings.displayBsDates;
 
     return (
-        <AppShell
-            title={item.name}
-            subtitle="Item profile, pricing tiers, and stock movement history."
-            activeKey="items"
-            extra={
-                <Link href={paths.items.edit(item.id)}>
-                    <Button>Edit Item</Button>
-                </Link>
-            }
-        >
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Card className="dp-dense-card">
-                    <Descriptions column={{ xs: 1, md: 2, xl: 3 }} bordered>
-                        <Descriptions.Item label="SKU">{item.sku || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="Type">{item.item_type}</Descriptions.Item>
-                        <Descriptions.Item label="Status">
-                            <Tag color={item.is_active ? 'green' : 'default'}>{item.is_active ? 'Active' : 'Inactive'}</Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Unit">{item.unit_name || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="Category">{item.category_name || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="Tax Rate">{Number(item.tax_rate).toFixed(2)}%</Descriptions.Item>
-                        <Descriptions.Item label="Base Price">{formatMoney(item.base_price)}</Descriptions.Item>
-                        <Descriptions.Item label="Selling Price">{formatMoney(item.selling_price)}</Descriptions.Item>
-                        <Descriptions.Item label="Current Stock">
-                            <span data-testid="item-current-stock">{formatQuantity(item.current_stock)}</span>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Opening Stock">{formatQuantity(item.opening_stock)}</Descriptions.Item>
-                        <Descriptions.Item label="Reorder Level">{formatQuantity(item.reorder_level)}</Descriptions.Item>
-                        <Descriptions.Item label="Allow Discount">{item.allow_discount ? 'Yes' : 'No'}</Descriptions.Item>
-                        <Descriptions.Item label="Track Inventory">{item.track_inventory ? 'Yes' : 'No'}</Descriptions.Item>
-                        <Descriptions.Item label="Description" span={3}>
-                            {item.description || '-'}
-                        </Descriptions.Item>
-                    </Descriptions>
-                </Card>
+        <AppShell title={item.name} subtitle="Item Master Detail" activeKey="items">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Header</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">SKU</label>
+                            <div>{item.sku || '-'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Type</label>
+                            <div>{item.item_type}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Status</label>
+                            <div>{item.is_active ? 'ACTIVE' : 'INACTIVE'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Unit</label>
+                            <div>{item.unit_name || '-'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Category</label>
+                            <div>{item.category_name || '-'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Tax Rate</label>
+                            <div>{Number(item.tax_rate).toFixed(2)}%</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Base Price</label>
+                            <div>{formatMoney(item.base_price)}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Selling Price</label>
+                            <div>{formatMoney(item.selling_price)}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Current Stock</label>
+                            <div data-testid="item-current-stock">{formatQuantity(item.current_stock)}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Opening Stock</label>
+                            <div>{formatQuantity(item.opening_stock)}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Reorder Level</label>
+                            <div>{formatQuantity(item.reorder_level)}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Action</label>
+                            <div>
+                                <Link href={paths.items.edit(item.id)}>
+                                    <Button>Edit Item</Button>
+                                </Link>
+                            </div>
+                        </div>
+                        <div className="dp-field col-span-12">
+                            <label className="dp-field-label">Description</label>
+                            <div>{item.description || '-'}</div>
+                        </div>
+                    </div>
+                </section>
 
-                <Card title="Price Tiers" className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Price Tiers</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         pagination={false}
                         dataSource={item.price_tiers}
-                        locale={{ emptyText: 'No price tiers configured for this item.' }}
+                        locale={{ emptyText: 'No price tiers configured.' }}
                         columns={[
                             { title: 'Label', dataIndex: 'label' },
                             { title: 'Amount', align: 'right', render: (_, record) => formatMoney(record.amount) },
                         ]}
                     />
-                </Card>
+                </section>
 
-                <Card title="Stock Movements" className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Stock Movements</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         pagination={false}
                         dataSource={item.stock_movements}
-                        locale={{ emptyText: 'No stock movement entries yet.' }}
+                        locale={{ emptyText: 'No stock movement entries.' }}
                         columns={[
-                            {
-                                title: 'Date',
-                                render: (_, record) => formatDisplayDate(record.movement_date, useBsDates),
-                            },
+                            { title: 'Date', render: (_, record) => formatDisplayDate(record.movement_date, useBsDates) },
                             { title: 'Type', dataIndex: 'movement_type' },
                             { title: 'Reference', dataIndex: 'reference_number', render: (value) => value || '-' },
                             { title: 'Notes', dataIndex: 'notes', render: (value) => value || '-' },
                             { title: 'Qty Change', align: 'right', render: (_, record) => formatQuantity(record.quantity_change) },
                         ]}
                     />
-                </Card>
-            </Space>
+                </section>
+            </div>
         </AppShell>
     );
 }

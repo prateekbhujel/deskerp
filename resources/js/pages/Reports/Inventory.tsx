@@ -3,7 +3,7 @@ import { formatMoney, formatQuantity } from '@/lib/format';
 import { paths, withQuery } from '@/lib/paths';
 import { PaginatedResponse, SimpleOption } from '@/types/shared';
 import { router } from '@inertiajs/react';
-import { Button, Card, Input, Select, Space, Statistic, Table } from 'antd';
+import { Button, Input, Select, Table } from 'antd';
 import { useState } from 'react';
 
 interface InventoryReportProps {
@@ -46,47 +46,64 @@ export default function InventoryReport({ items, summary, categories, filters }:
     };
 
     return (
-        <AppShell title="Inventory Report" subtitle="Current stock position with CSV/XLSX export." activeKey="reports">
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Space wrap size="large">
-                    <Statistic title="Tracked Items" value={summary.tracked_items} />
-                    <Statistic title="Low Stock Items" value={summary.low_stock_items} />
-                </Space>
-
-                <Card
-                    className="dp-dense-card"
-                    extra={
-                        <Space wrap>
-                            <a href={withQuery(paths.reports.inventory, { ...localFilters, export: 'csv' })}>
-                                <Button>CSV</Button>
-                            </a>
-                            <a href={withQuery(paths.reports.inventory, { ...localFilters, export: 'xlsx' })}>
-                                <Button type="primary">XLSX</Button>
-                            </a>
-                        </Space>
-                    }
-                >
-                    <div className="grid gap-4 lg:grid-cols-3">
-                        <Input value={localFilters.q} onChange={(event) => setLocalFilters((current) => ({ ...current, q: event.target.value }))} placeholder="Search item or SKU" />
-                        <Select
-                            allowClear
-                            placeholder="Category"
-                            value={localFilters.category_id || undefined}
-                            onChange={(value) => setLocalFilters((current) => ({ ...current, category_id: value ?? '' }))}
-                            options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
-                        />
-                        <Button type="primary" onClick={() => applyFilters()}>
-                            Apply
-                        </Button>
+        <AppShell title="Stock Summary" subtitle="Inventory Register" activeKey="reports">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Summary</h3>
                     </div>
-                </Card>
+                    <div className="dp-summary-grid">
+                        <span>Tracked Items</span>
+                        <strong>{summary.tracked_items}</strong>
+                        <span className="dp-summary-total">Low Stock</span>
+                        <strong className="dp-summary-total">{summary.low_stock_items}</strong>
+                    </div>
+                </section>
 
-                <Card className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Filters</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Search</label>
+                            <Input value={localFilters.q} onChange={(event) => setLocalFilters((current) => ({ ...current, q: event.target.value }))} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Category</label>
+                            <Select
+                                allowClear
+                                value={localFilters.category_id || undefined}
+                                onChange={(value) => setLocalFilters((current) => ({ ...current, category_id: value ?? '' }))}
+                                options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
+                            />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-7">
+                            <label className="dp-field-label">Actions</label>
+                            <div>
+                                <Button type="primary" onClick={() => applyFilters()}>
+                                    Show
+                                </Button>{' '}
+                                <a href={withQuery(paths.reports.inventory, { ...localFilters, export: 'csv' })}>
+                                    <Button>Export CSV</Button>
+                                </a>{' '}
+                                <a href={withQuery(paths.reports.inventory, { ...localFilters, export: 'xlsx' })}>
+                                    <Button>Export XLSX</Button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Rows</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         dataSource={items.data}
-                        locale={{ emptyText: 'No inventory rows found for selected filters.' }}
+                        locale={{ emptyText: 'No stock rows for current filters.' }}
                         pagination={{
                             current: items.meta.currentPage,
                             total: items.meta.total,
@@ -98,18 +115,14 @@ export default function InventoryReport({ items, summary, categories, filters }:
                             { title: 'Item', dataIndex: 'name' },
                             { title: 'Category', dataIndex: 'category_name', render: (value) => value || '-' },
                             { title: 'Unit', dataIndex: 'unit_name', render: (value) => value || '-' },
-                            { title: 'Current Stock', align: 'right', render: (_, record) => formatQuantity(record.current_stock) },
+                            { title: 'Current', align: 'right', render: (_, record) => formatQuantity(record.current_stock) },
                             { title: 'Reorder', align: 'right', render: (_, record) => formatQuantity(record.reorder_level) },
-                            { title: 'Base Price', align: 'right', render: (_, record) => formatMoney(record.base_price) },
-                            {
-                                title: 'Stock Value',
-                                align: 'right',
-                                render: (_, record) => formatMoney(Number(record.current_stock) * Number(record.base_price)),
-                            },
+                            { title: 'Base', align: 'right', render: (_, record) => formatMoney(record.base_price) },
+                            { title: 'Value', align: 'right', render: (_, record) => formatMoney(Number(record.current_stock) * Number(record.base_price)) },
                         ]}
                     />
-                </Card>
-            </Space>
+                </section>
+            </div>
         </AppShell>
     );
 }

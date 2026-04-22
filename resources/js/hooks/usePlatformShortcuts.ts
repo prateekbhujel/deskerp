@@ -12,6 +12,7 @@ export interface ShortcutLabels {
     searchInvoice: string;
     addCustomer: string;
     reports: string;
+    goBack: string;
 }
 
 const WINDOWS_SHORTCUTS: ShortcutLabels = {
@@ -26,6 +27,7 @@ const WINDOWS_SHORTCUTS: ShortcutLabels = {
     searchInvoice: 'Alt+I',
     addCustomer: 'Alt+C',
     reports: 'Alt+R',
+    goBack: 'Escape',
 };
 
 const MAC_SHORTCUTS: ShortcutLabels = {
@@ -40,6 +42,7 @@ const MAC_SHORTCUTS: ShortcutLabels = {
     searchInvoice: '⌥I',
     addCustomer: '⌥C',
     reports: '⌥R',
+    goBack: 'Escape',
 };
 
 function isMacPlatform() {

@@ -1,13 +1,17 @@
 import { BsDateInput } from '@/components/forms/BsDateInput';
-import { CustomerLookupRecord } from '@/components/forms/QuickAddCustomerModal';
 import { RemoteLookupSelect } from '@/components/forms/RemoteLookupSelect';
 import { AppShell } from '@/components/layout/AppShell';
 import { formatDisplayDate, formatMoney } from '@/lib/format';
 import { paths, withQuery } from '@/lib/paths';
 import { LookupOption, PaginatedResponse, SharedProps } from '@/types/shared';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Button, Card, Space, Statistic, Table } from 'antd';
+import { Button, Table } from 'antd';
 import { useState } from 'react';
+
+interface CustomerLookupRecord {
+    id: number;
+    name: string;
+}
 
 interface SalesReportProps {
     invoices: PaginatedResponse<{
@@ -65,56 +69,80 @@ export default function SalesReport({ invoices, summary, filters, selected_custo
     };
 
     return (
-        <AppShell title="Sales Report" subtitle="Filtered invoice summary with CSV/XLSX export." activeKey="reports">
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Space wrap size="large">
-                    <Statistic title="Total Sales" value={formatMoney(summary.total_sales)} />
-                    <Statistic title="Total Tax" value={formatMoney(summary.total_tax)} />
-                    <Statistic title="Outstanding" value={formatMoney(summary.total_balance)} />
-                </Space>
-
-                <Card
-                    className="dp-dense-card"
-                    extra={
-                        <Space wrap>
-                            <a href={withQuery(paths.reports.sales, { ...localFilters, export: 'csv' })}>
-                                <Button>CSV</Button>
-                            </a>
-                            <a href={withQuery(paths.reports.sales, { ...localFilters, export: 'xlsx' })}>
-                                <Button type="primary">XLSX</Button>
-                            </a>
-                        </Space>
-                    }
-                >
-                    <div className="grid gap-4 lg:grid-cols-4">
-                        <RemoteLookupSelect<CustomerLookupRecord>
-                            endpoint={paths.lookups.customers}
-                            value={customerOption}
-                            onChange={(option) => {
-                                setCustomerOption(option);
-                                setLocalFilters((current) => ({ ...current, customer_id: option ? String(option.record.id) : '' }));
-                            }}
-                            mapOption={(record) => ({
-                                value: Number(record.id),
-                                label: record.name,
-                                record,
-                            })}
-                            placeholder="Customer"
-                        />
-                        <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} placeholder="Date from" />
-                        <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} placeholder="Date to" />
-                        <Button type="primary" onClick={() => applyFilters()}>
-                            Apply
-                        </Button>
+        <AppShell title="Sales Report" subtitle="Sales Register" activeKey="reports">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Summary</h3>
                     </div>
-                </Card>
+                    <div className="dp-summary-grid">
+                        <span>Total Sales</span>
+                        <strong>{formatMoney(summary.total_sales)}</strong>
+                        <span>Total Tax</span>
+                        <strong>{formatMoney(summary.total_tax)}</strong>
+                        <span className="dp-summary-total">Outstanding</span>
+                        <strong className="dp-summary-total">{formatMoney(summary.total_balance)}</strong>
+                    </div>
+                </section>
 
-                <Card className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Filters</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Customer</label>
+                            <RemoteLookupSelect<CustomerLookupRecord>
+                                endpoint={paths.lookups.customers}
+                                value={customerOption}
+                                onChange={(option) => {
+                                    setCustomerOption(option);
+                                    setLocalFilters((current) => ({ ...current, customer_id: option ? String(option.record.id) : '' }));
+                                }}
+                                mapOption={(record) => ({
+                                    value: Number(record.id),
+                                    label: record.name,
+                                    record,
+                                })}
+                            />
+                        </div>
+
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">From</label>
+                            <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} />
+                        </div>
+
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">To</label>
+                            <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} />
+                        </div>
+
+                        <div className="dp-field col-span-12 xl:col-span-5">
+                            <label className="dp-field-label">Actions</label>
+                            <div>
+                                <Button type="primary" onClick={() => applyFilters()}>
+                                    Show
+                                </Button>{' '}
+                                <a href={withQuery(paths.reports.sales, { ...localFilters, export: 'csv' })}>
+                                    <Button>Export CSV</Button>
+                                </a>{' '}
+                                <a href={withQuery(paths.reports.sales, { ...localFilters, export: 'xlsx' })}>
+                                    <Button>Export XLSX</Button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Rows</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         dataSource={invoices.data}
-                        locale={{ emptyText: 'No sales data found for selected filters.' }}
+                        locale={{ emptyText: 'No sales rows for current filters.' }}
                         pagination={{
                             current: invoices.meta.currentPage,
                             total: invoices.meta.total,
@@ -139,8 +167,8 @@ export default function SalesReport({ invoices, summary, filters, selected_custo
                             { title: 'Balance', align: 'right', render: (_, record) => formatMoney(record.balance_due) },
                         ]}
                     />
-                </Card>
-            </Space>
+                </section>
+            </div>
         </AppShell>
     );
 }

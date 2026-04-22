@@ -11,10 +11,13 @@ class AppSettingSeeder extends Seeder
     {
         $defaults = [
             'company_name' => 'DeskERP',
-            'company_address' => 'Local-first accounting workspace',
+            'company_address' => '',
             'company_phone' => '',
-            'company_email' => 'deskerp@example.local',
+            'company_email' => '',
             'company_tax_number' => '',
+            'business_address' => '',
+            'business_phone' => '',
+            'business_email' => '',
             'display_bs_dates' => '0',
             'fiscal_year_label' => '',
             'fiscal_year_start_date' => '',
@@ -25,7 +28,7 @@ class AppSettingSeeder extends Seeder
             'payment_received_next_number' => '1',
             'payment_made_prefix' => 'PAY',
             'payment_made_next_number' => '1',
-            'currency' => 'USD',
+            'currency' => 'NPR',
         ];
 
         foreach ($defaults as $key => $value) {

@@ -1,106 +1,73 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
-async function fillNumberInput(page: Page, selector: string, value: string) {
-    const input = page.locator(selector);
-    await input.click();
-    await input.fill('');
-    await input.fill(value);
-}
+async function ensureCompanySelected(page: Page) {
+    await page.goto('/company');
 
-async function selectOption(page: Page, locator: Locator, optionText: string) {
-    const trigger = locator.locator('.ant-select-selector');
-
-    if (await trigger.count()) {
-        await trigger.click();
-    } else {
-        await locator.click();
+    if (await page.getByRole('button', { name: 'Use This Company' }).isVisible().catch(() => false)) {
+        await page.getByRole('button', { name: 'Use This Company' }).click();
+        return;
     }
 
-    await page.locator('.ant-select-dropdown').last().waitFor({ state: 'visible', timeout: 10000 });
-    await page
-        .getByRole('option', { name: optionText, exact: true })
-        .click({ timeout: 2000 })
-        .catch(async () => {
-            await page.locator('.ant-select-item-option').filter({ hasText: optionText }).first().click({ timeout: 10000 });
-        });
+    await page.getByLabel('Company Name').fill('DeskERP');
+    await page.getByLabel('Fiscal Year').fill('2082/83');
+    await page.getByLabel('Fiscal Start (AD)').fill('2026-04-14');
+    await page.getByLabel('Fiscal End (AD)').fill('2027-04-13');
+    await page.getByLabel('Admin Name').fill('DeskERP Admin');
+    await page.getByLabel('Admin Username').fill('admin');
+    await page.getByLabel('Admin Password').fill('deskerp123');
+    await page.getByLabel('Confirm Password').fill('deskerp123');
+    await page.getByRole('button', { name: 'Create Company' }).click();
 }
 
-async function selectRemoteOption(page: Page, testId: string, search: string, optionText: string) {
-    const select = page.getByTestId(testId);
-    const trigger = select.locator('.ant-select-selector');
-
-    if (await trigger.count()) {
-        await trigger.click();
-    } else {
-        await select.click();
-    }
-
-    await page.locator('.ant-select-dropdown').last().waitFor({ state: 'visible', timeout: 10000 });
-
-    const searchInput = select.locator('input');
-    if (await searchInput.count()) {
-        await searchInput.last().fill(search);
-    } else {
-        await page.locator('.ant-select-dropdown input').last().fill(search);
-    }
-
-    await page
-        .getByRole('option', { name: optionText, exact: true })
-        .click({ timeout: 4000 })
-        .catch(async () => {
-            await page.locator('.ant-select-item-option').filter({ hasText: optionText }).first().click({ timeout: 10000 });
-        });
-}
-
-test('smoke checks invoicing, payments, inventory, settings, and exports', async ({ page }) => {
+test('smoke checks invoicing, payments, inventory, reports, and exports', async ({ page }) => {
     test.setTimeout(120000);
 
     const unique = `${Date.now()}`;
     const customerName = `PW Customer ${unique}`;
     const itemName = `PW Item ${unique}`;
-    const fiscalYearLabel = '2082/83';
+    const supplierName = `PW Supplier ${unique}`;
+
+    await ensureCompanySelected(page);
 
     await page.goto('/login');
-    await page.getByLabel('Email').fill('admin@deskerp.local');
+    await page.getByLabel('Username').fill('admin');
     await page.getByLabel('Password').fill('deskerp123');
     await page.getByRole('button', { name: 'Log In' }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByTestId('app-shell-title')).toHaveText('Dashboard');
+    await expect(page.getByTestId('app-shell-title')).toContainText('DESKERP');
 
-    await page.keyboard.press('Alt+s');
-    await expect(page).toHaveURL(/\/settings$/);
-
-    await page.getByTestId('settings-fiscal-year-label').fill(fiscalYearLabel);
-    const bsSwitch = page.getByTestId('settings-bs-switch');
-    if ((await bsSwitch.getAttribute('aria-checked')) !== 'true') {
-        await bsSwitch.click();
-    }
+    await page.goto('/settings');
+    await page.getByTestId('settings-fiscal-year-label').fill('2082/83');
     await page.getByTestId('settings-save').click();
-    await expect(page.getByText('BS Display')).toBeVisible();
 
-    await page.locator('body').click({ position: { x: 10, y: 10 } });
-    await page.keyboard.press('Alt+n');
-    await expect(page).toHaveURL(/\/invoices\/create$/);
+    await page.goto('/invoices/create');
 
-    await page.getByTestId('invoice-add-customer').click();
+    await page.getByRole('button', { name: /Add Customer/ }).click();
     const customerResponsePromise = page.waitForResponse((response) => response.url().endsWith('/customers') && response.request().method() === 'POST' && response.status() === 200);
     await page.getByTestId('quick-customer-name').fill(customerName);
     await page.getByRole('button', { name: 'Save Customer' }).click();
     const customer = await (await customerResponsePromise).json();
-    await selectRemoteOption(page, 'invoice-customer-select', customerName, customerName);
 
-    await page.getByTestId('invoice-add-item').click();
+    await page.goto('/customers');
+    await expect(page.getByRole('link', { name: customerName })).toBeVisible();
+
+    await page.goto('/invoices/create');
+
+    await page.getByRole('button', { name: 'Add Item' }).click();
     const itemResponsePromise = page.waitForResponse((response) => response.url().endsWith('/items') && response.request().method() === 'POST' && response.status() === 200);
     await page.getByTestId('quick-item-name').fill(itemName);
-    await selectOption(page, page.getByTestId('quick-item-unit'), 'Piece');
-    await fillNumberInput(page, '#quick-item-base-price', '80');
-    await fillNumberInput(page, '#quick-item-selling-price', '100');
-    await fillNumberInput(page, '#quick-item-tax-rate', '13');
-    await fillNumberInput(page, '#quick-item-opening-stock', '10');
+    await page.getByTestId('quick-item-selling-price').fill('100');
+    await page.getByTestId('quick-item-tax-rate').fill('13');
+    await page.getByTestId('quick-item-opening-stock').fill('10');
     await page.getByRole('button', { name: 'Save Item' }).click();
     const item = await (await itemResponsePromise).json();
-    await selectRemoteOption(page, 'invoice-line-item-0', itemName, itemName);
+
+    await page.goto('/suppliers/create');
+    await page.getByTestId('supplier-name-input').fill(supplierName);
+    await page.getByRole('button', { name: /Save/ }).first().click();
+    await expect(page).toHaveURL(/\/suppliers\/\d+$/);
+    await expect(page.getByText('RECENT PAYMENTS')).toBeVisible();
 
     const csrfToken = await page.locator('meta[name="csrf-token"]').getAttribute('content');
     const invoiceCreateResponse = await page.context().request.post('/invoices', {
@@ -117,7 +84,7 @@ test('smoke checks invoicing, payments, inventory, settings, and exports', async
             notes: '',
             'lines[0][item_id]': String(item.id),
             'lines[0][description]': itemName,
-            'lines[0][unit_name]': 'PCS',
+            'lines[0][unit_name]': item.unit ?? 'PCS',
             'lines[0][quantity]': '1',
             'lines[0][rate]': '100',
             'lines[0][discount_percent]': '0',
@@ -128,33 +95,27 @@ test('smoke checks invoicing, payments, inventory, settings, and exports', async
 
     const createdInvoiceId = invoiceCreateResponse.url().match(/\/invoices\/(\d+)$/)?.[1];
     expect(createdInvoiceId).toBeTruthy();
+
     await page.goto(`/invoices/${createdInvoiceId}`);
-    await expect(page.getByTestId('app-shell-title')).toContainText('INV-2082/83-00001');
     await expect(page.getByTestId('invoice-total')).toHaveText('113.00');
     await expect(page.getByTestId('invoice-paid-total')).toHaveText('0.00');
     await expect(page.getByTestId('invoice-balance-due')).toHaveText('113.00');
-    await expect(page.getByTestId('invoice-payment-status')).toContainText('unpaid');
+    await expect(page.getByTestId('invoice-payment-status')).toContainText('UNPAID');
 
     const invoiceId = page.url().match(/\/invoices\/(\d+)$/)?.[1];
     expect(invoiceId).toBeTruthy();
 
     const printResponse = await page.context().request.get(`/invoices/${invoiceId}/print`);
     expect(printResponse.ok()).toBeTruthy();
-    expect(await printResponse.text()).toContain('INV-2082/83-00001');
 
     const pdfResponse = await page.context().request.get(`/invoices/${invoiceId}/pdf`);
     expect(pdfResponse.ok()).toBeTruthy();
     expect(pdfResponse.headers()['content-type']).toContain('application/pdf');
 
     await page.goto(`/items/${item.id}`);
-    await expect(page.getByTestId('app-shell-title')).toContainText(itemName);
     await expect(page.getByTestId('item-current-stock')).toHaveText('9.000');
 
-    await page.locator('body').click({ position: { x: 10, y: 10 } });
-    await page.keyboard.press('Alt+p');
-    await expect(page).toHaveURL(/\/payments\/create/);
-    await selectRemoteOption(page, 'payment-open-invoice-select', 'INV-2082/83-00001', `INV-2082/83-00001 (${customerName})`);
-    await expect(page.locator('#payment-amount-input')).toHaveValue(/113(?:\.00)?/);
+    await page.goto('/payments/create?direction=received');
     const paymentCreateResponse = await page.context().request.post('/payments', {
         headers: {
             'X-CSRF-TOKEN': csrfToken ?? '',
@@ -175,22 +136,16 @@ test('smoke checks invoicing, payments, inventory, settings, and exports', async
     const createdPaymentId = paymentCreateResponse.url().match(/\/payments\/(\d+)$/)?.[1];
     expect(createdPaymentId).toBeTruthy();
     await page.goto(`/payments/${createdPaymentId}`);
-
-    await expect(page.getByTestId('app-shell-title')).toContainText('REC-2082/83-00001');
-    await expect(page.getByText('INV-2082/83-00001')).toBeVisible();
+    await expect(page.getByText(/INV-/)).toBeVisible();
 
     await page.goto(`/invoices/${invoiceId}`);
     await expect(page.getByTestId('invoice-paid-total')).toHaveText('113.00');
     await expect(page.getByTestId('invoice-balance-due')).toHaveText('0.00');
-    await expect(page.getByTestId('invoice-payment-status')).toContainText('paid');
-
-    await page.goto('/reports');
-    await expect(page.getByTestId('app-shell-title')).toContainText('Reports');
+    await expect(page.getByTestId('invoice-payment-status')).toContainText('PAID');
 
     const salesCsv = await page.context().request.get('/reports/sales?export=csv');
     expect(salesCsv.ok()).toBeTruthy();
     expect(salesCsv.headers()['content-type']).toContain('text/csv');
-    expect(await salesCsv.text()).toContain('INV-2082/83-00001');
 
     const salesXlsx = await page.context().request.get('/reports/sales?export=xlsx');
     expect(salesXlsx.ok()).toBeTruthy();

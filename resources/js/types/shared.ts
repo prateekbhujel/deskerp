@@ -1,6 +1,7 @@
 export interface AuthUser {
     id: number;
     name: string;
+    username: string;
     email: string;
     role: string;
 }
@@ -13,6 +14,7 @@ export interface SharedSettings {
         email: string;
     };
     displayBsDates: boolean;
+    currency: string;
     fiscalYear: {
         label: string | null;
         startDate: string | null;

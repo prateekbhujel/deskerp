@@ -10,9 +10,9 @@ class ExampleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_root_redirects_guests_to_login(): void
+    public function test_root_redirects_guests_to_company_selection(): void
     {
-        $this->get('/')->assertRedirect(route('login', absolute: false));
+        $this->get('/')->assertRedirect(route('company.select', absolute: false));
     }
 
     public function test_root_redirects_authenticated_users_to_dashboard(): void
@@ -20,6 +20,7 @@ class ExampleTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
+            ->withSession(['company_selected' => true])
             ->get('/')
             ->assertRedirect(route('dashboard', absolute: false));
     }

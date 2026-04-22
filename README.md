@@ -29,6 +29,8 @@ DeskERP is a local-first accounting product for small business workflows. Larave
 - Setup wizard for business profile, fiscal year, and prefixes
 - Optional Bikram Sambat date display with AD storage in SQLite
 - Manual SQLite backup and restore
+- Company selection startup flow before login
+- Role-ready user accounts (admin / data-entry / view-only access controls)
 
 ## Local Setup
 
@@ -73,7 +75,7 @@ npm run dev:vite
 
 ## Default Admin Login
 
-- Email: `admin@deskerp.local`
+- Username: `admin`
 - Password: `deskerp123`
 
 You can override the seeded admin in `.env`:
@@ -81,6 +83,7 @@ You can override the seeded admin in `.env`:
 ```env
 DESKERP_ADMIN_NAME="DeskERP Admin"
 DESKERP_ADMIN_EMAIL="admin@deskerp.local"
+DESKERP_ADMIN_USERNAME="admin"
 DESKERP_ADMIN_PASSWORD="deskerp123"
 APP_VERSION="0.2.0"
 ```
@@ -91,7 +94,7 @@ APP_VERSION="0.2.0"
 - React pages are under `resources/js/pages`.
 - Shared React layout/components live in `resources/js/components`, `resources/js/hooks`, and `resources/js/lib`.
 - Laravel controllers still own validation, persistence, numbering, stock updates, and exports.
-- Quick-add customer/item modals reuse Laravel validation through JSON-aware controller responses.
+- Quick-add customer/item inline panels reuse Laravel validation through JSON-aware controller responses.
 
 ## Nepali Calendar + Fiscal Year
 

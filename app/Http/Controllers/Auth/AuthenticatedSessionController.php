@@ -14,8 +14,12 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View|RedirectResponse
     {
+        if (! (bool) $request->session()->get('company_selected', false)) {
+            return redirect()->route('company.select');
+        }
+
         return view('auth.login');
     }
 
@@ -24,6 +28,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        if (! (bool) $request->session()->get('company_selected', false)) {
+            return redirect()->route('company.select');
+        }
+
         $request->authenticate();
 
         $request->session()->regenerate();

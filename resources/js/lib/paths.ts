@@ -2,10 +2,19 @@ export const paths = {
     dashboard: '/dashboard',
     customers: {
         index: '/customers',
+        create: '/customers/create',
         store: '/customers',
+        show: (id: number | string) => `/customers/${id}`,
+        edit: (id: number | string) => `/customers/${id}/edit`,
+        update: (id: number | string) => `/customers/${id}`,
     },
     suppliers: {
         index: '/suppliers',
+        create: '/suppliers/create',
+        store: '/suppliers',
+        show: (id: number | string) => `/suppliers/${id}`,
+        edit: (id: number | string) => `/suppliers/${id}/edit`,
+        update: (id: number | string) => `/suppliers/${id}`,
     },
     items: {
         index: '/items',
@@ -43,6 +52,8 @@ export const paths = {
         supplierLedger: (id: number | string) => `/reports/suppliers/${id}/ledger`,
     },
     settings: '/settings',
+    settingsUsers: '/settings/users',
+    settingsUserUpdate: (id: number | string) => `/settings/users/${id}`,
     backups: '/backups',
     backupsDownload: '/backups/download',
     backupsRestore: '/backups/restore',

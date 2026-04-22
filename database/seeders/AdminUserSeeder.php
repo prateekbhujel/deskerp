@@ -14,6 +14,7 @@ class AdminUserSeeder extends Seeder
             ['email' => env('DESKERP_ADMIN_EMAIL', 'admin@deskerp.local')],
             [
                 'name' => env('DESKERP_ADMIN_NAME', 'DeskERP Admin'),
+                'username' => env('DESKERP_ADMIN_USERNAME', 'admin'),
                 'role' => 'admin',
                 'is_active' => true,
                 'password' => Hash::make(env('DESKERP_ADMIN_PASSWORD', 'deskerp123')),

@@ -3,8 +3,8 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { coerceNumber } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { SimpleOption } from '@/types/shared';
-import { useForm } from '@inertiajs/react';
-import { Button, Card, Checkbox, Input, InputNumber, Select, Space, Table, Typography } from 'antd';
+import { router, useForm } from '@inertiajs/react';
+import { Button, Checkbox, Input, InputNumber, Select, Space, Table } from 'antd';
 import { useMemo } from 'react';
 
 interface ItemFormProps {
@@ -55,15 +55,11 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
         }));
 
         if (mode === 'create') {
-            post(paths.items.store, {
-                preserveScroll: true,
-            });
+            post(paths.items.store, { preserveScroll: true });
             return;
         }
 
-        put(paths.items.edit(item.id as number).replace('/edit', ''), {
-            preserveScroll: true,
-        });
+        put(paths.items.edit(item.id as number).replace('/edit', ''), { preserveScroll: true });
     };
 
     useKeyboardShortcuts([
@@ -79,92 +75,89 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
             allowInInputs: true,
             handler: () => setData('price_tiers', [...data.price_tiers, { label: '', amount: '' }]),
         },
+        {
+            key: 'Escape',
+            allowInInputs: true,
+            handler: () => router.visit(paths.items.index),
+        },
     ]);
 
     return (
-        <AppShell
-            title={mode === 'create' ? 'New Item' : `Edit ${item.name}`}
-            subtitle="Ctrl+S save item, Alt+T add pricing tier."
-            activeKey="items"
-            extra={
-                <Button type="primary" loading={processing} onClick={submit}>
-                    Save Item
-                </Button>
-            }
-        >
-            <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Item Details" className="dp-dense-card">
-                        <div className="grid gap-3 xl:grid-cols-3">
-                            <div>
-                                <Typography.Text strong>SKU</Typography.Text>
-                                <Input style={{ marginTop: 8 }} value={data.sku} onChange={(event) => setData('sku', event.target.value)} />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Item Name</Typography.Text>
-                                <Input style={{ marginTop: 8 }} value={data.name} onChange={(event) => setData('name', event.target.value)} />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Item Type</Typography.Text>
-                                <Select
-                                    className="w-full"
-                                    style={{ marginTop: 8 }}
-                                    value={data.item_type}
-                                    onChange={(value) => setData('item_type', value)}
-                                    options={[
-                                        { value: 'stockable', label: 'Stockable' },
-                                        { value: 'service', label: 'Service' },
-                                    ]}
-                                />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Unit</Typography.Text>
-                                <Select
-                                    className="w-full"
-                                    style={{ marginTop: 8 }}
-                                    value={data.unit_id ?? undefined}
-                                    onChange={(value) => setData('unit_id', value)}
-                                    options={units.map((unit) => ({ value: unit.id, label: unit.name }))}
-                                />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Category</Typography.Text>
-                                <Select
-                                    allowClear
-                                    className="w-full"
-                                    style={{ marginTop: 8 }}
-                                    value={data.category_id ?? undefined}
-                                    onChange={(value) => setData('category_id', value ?? null)}
-                                    options={categories.map((category) => ({ value: category.id, label: category.name }))}
-                                />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Tax Rate %</Typography.Text>
-                                <InputNumber className="w-full" style={{ marginTop: 8 }} value={Number(data.tax_rate)} min={0} step={0.01} onChange={(value) => setData('tax_rate', String(value ?? ''))} />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Base Price</Typography.Text>
-                                <InputNumber className="w-full" style={{ marginTop: 8 }} value={Number(data.base_price)} min={0} step={0.01} onChange={(value) => setData('base_price', String(value ?? ''))} />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Selling Price</Typography.Text>
-                                <InputNumber className="w-full" style={{ marginTop: 8 }} value={Number(data.selling_price)} min={0} step={0.01} onChange={(value) => setData('selling_price', String(value ?? ''))} />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Opening Stock</Typography.Text>
-                                <InputNumber className="w-full" style={{ marginTop: 8 }} value={Number(data.opening_stock)} min={0} step={0.001} onChange={(value) => setData('opening_stock', String(value ?? ''))} />
-                            </div>
-                            <div>
-                                <Typography.Text strong>Reorder Level</Typography.Text>
-                                <InputNumber className="w-full" style={{ marginTop: 8 }} value={Number(data.reorder_level)} min={0} step={0.001} onChange={(value) => setData('reorder_level', String(value ?? ''))} />
-                            </div>
-                            <div className="xl:col-span-3">
-                                <Typography.Text strong>Description</Typography.Text>
-                                <Input.TextArea style={{ marginTop: 8 }} rows={4} value={data.description} onChange={(event) => setData('description', event.target.value)} />
-                            </div>
+        <AppShell title={mode === 'create' ? 'Item Master' : `Item Master ${item.name}`} subtitle="Pricing / Stock Setup" activeKey="items">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Item Details</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">SKU</label>
+                            <Input value={data.sku} onChange={(event) => setData('sku', event.target.value)} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Item Name</label>
+                            <Input value={data.name} onChange={(event) => setData('name', event.target.value)} />
+                            {errors.name ? <span className="dp-error-text">{errors.name}</span> : null}
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Item Type</label>
+                            <Select
+                                value={data.item_type}
+                                onChange={(value) => setData('item_type', value)}
+                                options={[
+                                    { value: 'stockable', label: 'STOCKABLE' },
+                                    { value: 'service', label: 'SERVICE' },
+                                ]}
+                            />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Unit</label>
+                            <Select value={data.unit_id ?? undefined} onChange={(value) => setData('unit_id', value)} options={units.map((unit) => ({ value: unit.id, label: unit.name }))} />
+                            {errors.unit_id ? <span className="dp-error-text">{errors.unit_id}</span> : null}
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Category</label>
+                            <Select
+                                allowClear
+                                value={data.category_id ?? undefined}
+                                onChange={(value) => setData('category_id', value ?? null)}
+                                options={categories.map((category) => ({ value: category.id, label: category.name }))}
+                            />
+                            {errors.category_id ? <span className="dp-error-text">{errors.category_id}</span> : null}
                         </div>
 
-                        <Space wrap style={{ marginTop: 16 }}>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Base Price</label>
+                            <InputNumber controls={false} className="w-full" value={Number(data.base_price)} min={0} step={0.01} onChange={(value) => setData('base_price', String(value ?? '0'))} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Selling Price</label>
+                            <InputNumber controls={false} className="w-full" value={Number(data.selling_price)} min={0} step={0.01} onChange={(value) => setData('selling_price', String(value ?? '0'))} />
+                            {errors.selling_price ? <span className="dp-error-text">{errors.selling_price}</span> : null}
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Tax %</label>
+                            <InputNumber controls={false} className="w-full" value={Number(data.tax_rate)} min={0} step={0.01} onChange={(value) => setData('tax_rate', String(value ?? '0'))} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Opening Stock</label>
+                            <InputNumber controls={false} className="w-full" value={Number(data.opening_stock)} min={0} step={0.001} onChange={(value) => setData('opening_stock', String(value ?? '0'))} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Reorder Level</label>
+                            <InputNumber controls={false} className="w-full" value={Number(data.reorder_level)} min={0} step={0.001} onChange={(value) => setData('reorder_level', String(value ?? '0'))} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Margin</label>
+                            <div>{summary.grossMargin.toFixed(2)}</div>
+                        </div>
+                        <div className="dp-field col-span-12">
+                            <label className="dp-field-label">Description</label>
+                            <Input.TextArea rows={2} value={data.description} onChange={(event) => setData('description', event.target.value)} />
+                        </div>
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                        <Space size={12}>
                             <Checkbox checked={data.allow_discount} onChange={(event) => setData('allow_discount', event.target.checked)}>
                                 Allow Discount
                             </Checkbox>
@@ -175,112 +168,84 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
                                 Active
                             </Checkbox>
                         </Space>
+                    </div>
+                </section>
 
-                        {Object.values(errors).length ? (
-                            <div style={{ marginTop: 16 }}>
-                                {Object.entries(errors).map(([field, message]) => (
-                                    <Typography.Text key={field} type="danger" style={{ display: 'block' }}>
-                                        {message}
-                                    </Typography.Text>
-                                ))}
-                            </div>
-                        ) : null}
-                    </Card>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Price Tiers</h3>
+                        <Button onClick={() => setData('price_tiers', [...data.price_tiers, { label: '', amount: '' }])}>Add Tier (Alt+T)</Button>
+                    </div>
+                    <Table
+                        rowKey={(_, index) => index ?? 0}
+                        size="small"
+                        pagination={false}
+                        dataSource={data.price_tiers}
+                        columns={[
+                            {
+                                title: 'Label',
+                                render: (_, tier, index) => (
+                                    <Input
+                                        value={tier.label}
+                                        onChange={(event) => {
+                                            const next = [...data.price_tiers];
+                                            next[index] = { ...tier, label: event.target.value };
+                                            setData('price_tiers', next);
+                                        }}
+                                    />
+                                ),
+                            },
+                            {
+                                title: 'Amount',
+                                width: 160,
+                                render: (_, tier, index) => (
+                                    <InputNumber
+                                        controls={false}
+                                        className="w-full"
+                                        value={Number(tier.amount || 0)}
+                                        min={0}
+                                        step={0.01}
+                                        onChange={(value) => {
+                                            const next = [...data.price_tiers];
+                                            next[index] = { ...tier, amount: String(value ?? '0') };
+                                            setData('price_tiers', next);
+                                        }}
+                                    />
+                                ),
+                            },
+                            {
+                                title: '',
+                                width: 80,
+                                render: (_, __, index) => (
+                                    <Button
+                                        onClick={() => {
+                                            const next = data.price_tiers.filter((_, tierIndex) => tierIndex !== index);
+                                            setData('price_tiers', next.length ? next : [{ label: '', amount: '' }]);
+                                        }}
+                                    >
+                                        Del
+                                    </Button>
+                                ),
+                            },
+                        ]}
+                    />
+                </section>
 
-                    <Card
-                        title="Price Tiers"
-                        className="dp-dense-card"
-                        extra={
-                            <Button onClick={() => setData('price_tiers', [...data.price_tiers, { label: '', amount: '' }])}>
-                                Add Tier
-                            </Button>
-                        }
-                    >
-                        <Table
-                            rowKey={(_, index) => index ?? 0}
-                            size="small"
-                            pagination={false}
-                            dataSource={data.price_tiers}
-                            columns={[
-                                {
-                                    title: 'Label',
-                                    render: (_, tier, index) => (
-                                        <Input
-                                            value={tier.label}
-                                            onChange={(event) => {
-                                                const next = [...data.price_tiers];
-                                                next[index] = { ...tier, label: event.target.value };
-                                                setData('price_tiers', next);
-                                            }}
-                                        />
-                                    ),
-                                },
-                                {
-                                    title: 'Amount',
-                                    width: 160,
-                                    render: (_, tier, index) => (
-                                        <InputNumber
-                                            className="w-full"
-                                            value={Number(tier.amount || 0)}
-                                            min={0}
-                                            step={0.01}
-                                            onChange={(value) => {
-                                                const next = [...data.price_tiers];
-                                                next[index] = { ...tier, amount: String(value ?? '') };
-                                                setData('price_tiers', next);
-                                            }}
-                                        />
-                                    ),
-                                },
-                                {
-                                    title: '',
-                                    width: 90,
-                                    render: (_, __, index) => (
-                                        <Button
-                                            type="text"
-                                            danger
-                                            onClick={() => {
-                                                const next = data.price_tiers.filter((_, tierIndex) => tierIndex !== index);
-                                                setData('price_tiers', next.length ? next : [{ label: '', amount: '' }]);
-                                            }}
-                                        >
-                                            Remove
-                                        </Button>
-                                    ),
-                                },
-                            ]}
-                        />
-                    </Card>
-                </Space>
+                {Object.values(errors).length ? (
+                    <section className="dp-section-block">
+                        <div className="dp-error-text">{Object.values(errors).join(' | ')}</div>
+                    </section>
+                ) : null}
 
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Summary" className="dp-dense-card">
-                        <Space direction="vertical" size="small" style={{ display: 'flex' }}>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Margin Spread</Typography.Text>
-                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {summary.grossMargin.toFixed(2)}
-                                </Typography.Title>
-                            </div>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Active Price Tiers</Typography.Text>
-                                <Typography.Title level={5} style={{ margin: '6px 0 0' }}>
-                                    {summary.tierCount}
-                                </Typography.Title>
-                            </div>
-                            <div className="dp-queue-card">
-                                <Typography.Text type="secondary">Shortcut Strip</Typography.Text>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                    <span className="dp-kbd">Ctrl+S</span>
-                                    <span className="dp-kbd">Alt+T</span>
-                                </div>
-                            </div>
-                            <Typography.Text type="secondary">
-                                Opening stock is applied only when inventory tracking is enabled.
-                            </Typography.Text>
-                        </Space>
-                    </Card>
-                </Space>
+                <section className="dp-section-block">
+                    <Space size={6}>
+                        <Button type="primary" loading={processing} onClick={submit}>
+                            Save Item (Ctrl+S)
+                        </Button>
+                        <Button onClick={() => router.visit(paths.items.index)}>Cancel (Escape)</Button>
+                        <span>Active Price Tiers: {summary.tierCount}</span>
+                    </Space>
+                </section>
             </div>
         </AppShell>
     );
