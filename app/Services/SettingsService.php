@@ -47,6 +47,7 @@ class SettingsService
                 'email' => $this->get('business_email', ''),
             ],
             'displayBsDates' => $this->bool('display_bs_dates', false),
+            'currency' => strtoupper((string) $this->get('currency', 'NPR')),
             'fiscalYear' => $fiscalYear,
             'prefixes' => [
                 'invoice' => $this->get('invoice_prefix', 'INV'),

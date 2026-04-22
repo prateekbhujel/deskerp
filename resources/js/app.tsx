@@ -32,8 +32,31 @@ createInertiaApp({
                     token: {
                         colorPrimary: '#0f766e',
                         borderRadius: 0,
+                        borderRadiusLG: 0,
+                        borderRadiusSM: 0,
+                        boxShadow: 'none',
+                        boxShadowSecondary: 'none',
+                        boxShadowTertiary: 'none',
                         fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
                         fontSize: 12,
+                    },
+                    components: {
+                        Button: {
+                            borderRadius: 0,
+                            boxShadow: 'none',
+                        },
+                        Input: {
+                            borderRadius: 0,
+                            activeShadow: 'none',
+                        },
+                        Select: {
+                            borderRadius: 0,
+                            activeOutlineColor: 'transparent',
+                        },
+                        Table: {
+                            borderRadius: 0,
+                            headerBorderRadius: 0,
+                        },
                     },
                 }}
             >

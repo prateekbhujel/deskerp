@@ -3,7 +3,7 @@ import { coerceNumber, formatMoney, formatQuantity } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { PaginatedResponse, SimpleOption } from '@/types/shared';
 import { Link, router } from '@inertiajs/react';
-import { Button, Card, Input, Select, Space, Table, Tag, Typography } from 'antd';
+import { Button, Input, Select, Table } from 'antd';
 import { useMemo, useState } from 'react';
 
 interface ItemsIndexProps {
@@ -54,98 +54,97 @@ export default function ItemsIndex({ items, filters, categories }: ItemsIndexPro
     };
 
     return (
-        <AppShell
-            title="Items & Pricing"
-            subtitle="Item master with pricing, opening stock, and status filters."
-            activeKey="items"
-            extra={
-                <Space wrap>
-                    <Link href={paths.reports.inventory}>
-                        <Button>Inventory Report</Button>
-                    </Link>
-                    <Link href={paths.items.create}>
-                        <Button type="primary">New Item</Button>
-                    </Link>
-                </Space>
-            }
-        >
-            <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                <div className="grid gap-3 lg:grid-cols-4">
-                    <Card className="dp-dense-stat">
-                        <Typography.Text type="secondary">Visible Items</Typography.Text>
-                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
-                            {summary.visibleRecords}
-                        </Typography.Title>
-                    </Card>
-                    <Card className="dp-dense-stat">
-                        <Typography.Text type="secondary">Active</Typography.Text>
-                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
-                            {summary.activeCount}
-                        </Typography.Title>
-                    </Card>
-                    <Card className="dp-dense-stat">
-                        <Typography.Text type="secondary">Stockable</Typography.Text>
-                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
-                            {summary.stockTracked}
-                        </Typography.Title>
-                    </Card>
-                    <Card className="dp-dense-stat">
-                        <Typography.Text type="secondary">Page Stock Qty</Typography.Text>
-                        <Typography.Title level={4} style={{ margin: '6px 0 0' }}>
-                            {formatQuantity(summary.pageStock)}
-                        </Typography.Title>
-                    </Card>
-                </div>
-
-                <Card className="dp-dense-card">
-                    <div className="grid gap-3 xl:grid-cols-[2fr_1fr_1fr_auto]">
-                        <Input
-                            data-global-search="true"
-                            placeholder="Search item or SKU"
-                            value={localFilters.q}
-                            onChange={(event) => setLocalFilters((current) => ({ ...current, q: event.target.value }))}
-                            onPressEnter={() => applyFilters()}
-                        />
-                        <Select
-                            allowClear
-                            placeholder="Category"
-                            value={localFilters.category_id || undefined}
-                            onChange={(value) => setLocalFilters((current) => ({ ...current, category_id: value ?? '' }))}
-                            options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
-                        />
-                        <Select
-                            allowClear
-                            placeholder="Status"
-                            value={localFilters.status || undefined}
-                            onChange={(value) => setLocalFilters((current) => ({ ...current, status: value ?? '' }))}
-                            options={[
-                                { value: 'active', label: 'Active' },
-                                { value: 'inactive', label: 'Inactive' },
-                            ]}
-                        />
-                        <Space>
-                            <Button type="primary" onClick={() => applyFilters()}>
-                                Apply
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    const cleared = { q: '', category_id: '', status: '' };
-                                    setLocalFilters(cleared);
-                                    router.get(paths.items.index, {}, { replace: true });
-                                }}
-                            >
-                                Reset
-                            </Button>
-                        </Space>
+        <AppShell title="Items & Pricing" subtitle="Item Master Register" activeKey="items">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Summary</h3>
                     </div>
-                </Card>
+                    <ul className="dp-section-list">
+                        <li>
+                            <span>Visible Items</span>
+                            <span>{summary.visibleRecords}</span>
+                        </li>
+                        <li>
+                            <span>Active</span>
+                            <span>{summary.activeCount}</span>
+                        </li>
+                        <li>
+                            <span>Stockable</span>
+                            <span>{summary.stockTracked}</span>
+                        </li>
+                        <li>
+                            <span>Page Stock Qty</span>
+                            <span>{formatQuantity(summary.pageStock)}</span>
+                        </li>
+                    </ul>
+                </section>
 
-                <Card className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Filters</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-4">
+                            <label className="dp-field-label">Search</label>
+                            <Input value={localFilters.q} onChange={(event) => setLocalFilters((current) => ({ ...current, q: event.target.value }))} onPressEnter={() => applyFilters()} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Category</label>
+                            <Select
+                                allowClear
+                                value={localFilters.category_id || undefined}
+                                onChange={(value) => setLocalFilters((current) => ({ ...current, category_id: value ?? '' }))}
+                                options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
+                            />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Status</label>
+                            <Select
+                                allowClear
+                                value={localFilters.status || undefined}
+                                onChange={(value) => setLocalFilters((current) => ({ ...current, status: value ?? '' }))}
+                                options={[
+                                    { value: 'active', label: 'ACTIVE' },
+                                    { value: 'inactive', label: 'INACTIVE' },
+                                ]}
+                            />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Actions</label>
+                            <div>
+                                <Button type="primary" onClick={() => applyFilters()}>
+                                    Show
+                                </Button>{' '}
+                                <Link href={paths.items.create}>
+                                    <Button type="primary">New Item</Button>
+                                </Link>{' '}
+                                <Link href={paths.reports.inventory}>
+                                    <Button>Inventory Report</Button>
+                                </Link>{' '}
+                                <Button
+                                    onClick={() => {
+                                        const cleared = { q: '', category_id: '', status: '' };
+                                        setLocalFilters(cleared);
+                                        router.get(paths.items.index, {}, { replace: true });
+                                    }}
+                                >
+                                    Reset
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Rows</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         dataSource={items.data}
-                        locale={{ emptyText: 'No items found. Add an item to start invoicing and inventory tracking.' }}
+                        locale={{ emptyText: 'No items found. Add item to start pricing and inventory.' }}
                         pagination={{
                             current: items.meta.currentPage,
                             total: items.meta.total,
@@ -156,53 +155,25 @@ export default function ItemsIndex({ items, filters, categories }: ItemsIndexPro
                             {
                                 title: 'Item',
                                 render: (_, record) => (
-                                    <Space direction="vertical" size={0}>
-                                        <Link href={paths.items.show(record.id)}>{record.name}</Link>
-                                        <Typography.Text type="secondary">{record.sku || 'No SKU'}</Typography.Text>
-                                    </Space>
+                                    <div>
+                                        <div>
+                                            <Link href={paths.items.show(record.id)}>{record.name}</Link>
+                                        </div>
+                                        <div style={{ color: '#6b7280' }}>{record.sku || '-'}</div>
+                                    </div>
                                 ),
                             },
-                            {
-                                title: 'Type',
-                                width: 110,
-                                dataIndex: 'item_type',
-                            },
-                            {
-                                title: 'Unit',
-                                width: 110,
-                                dataIndex: 'unit_name',
-                                render: (value) => value || '-',
-                            },
-                            {
-                                title: 'Category',
-                                render: (_, record) => <Typography.Text type="secondary">{record.category_name || '-'}</Typography.Text>,
-                            },
-                            {
-                                title: 'Selling',
-                                width: 120,
-                                align: 'right',
-                                render: (_, record) => formatMoney(record.selling_price),
-                            },
-                            {
-                                title: 'Stock',
-                                width: 120,
-                                align: 'right',
-                                render: (_, record) => formatQuantity(record.current_stock),
-                            },
-                            {
-                                title: 'Status',
-                                width: 110,
-                                render: (_, record) => <Tag color={record.is_active ? 'green' : 'default'}>{record.is_active ? 'Active' : 'Inactive'}</Tag>,
-                            },
-                            {
-                                title: 'Action',
-                                width: 80,
-                                render: (_, record) => <Link href={paths.items.edit(record.id)}>Edit</Link>,
-                            },
+                            { title: 'Type', width: 110, dataIndex: 'item_type' },
+                            { title: 'Unit', width: 110, dataIndex: 'unit_name', render: (value) => value || '-' },
+                            { title: 'Category', render: (_, record) => record.category_name || '-' },
+                            { title: 'Selling', width: 120, align: 'right', render: (_, record) => formatMoney(record.selling_price) },
+                            { title: 'Stock', width: 120, align: 'right', render: (_, record) => formatQuantity(record.current_stock) },
+                            { title: 'Status', width: 110, render: (_, record) => (record.is_active ? 'ACTIVE' : 'INACTIVE') },
+                            { title: 'Action', width: 80, render: (_, record) => <Link href={paths.items.edit(record.id)}>Edit</Link> },
                         ]}
                     />
-                </Card>
-            </Space>
+                </section>
+            </div>
         </AppShell>
     );
 }

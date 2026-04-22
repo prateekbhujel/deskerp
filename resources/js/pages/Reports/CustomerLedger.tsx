@@ -4,7 +4,7 @@ import { formatDisplayDate, formatMoney } from '@/lib/format';
 import { paths, withQuery } from '@/lib/paths';
 import { PaginatedResponse, SharedProps } from '@/types/shared';
 import { router, usePage } from '@inertiajs/react';
-import { Button, Card, Space, Table } from 'antd';
+import { Button, Table } from 'antd';
 import { useState } from 'react';
 
 interface CustomerLedgerProps {
@@ -47,36 +47,47 @@ export default function CustomerLedger({ customer, ledger, filters }: CustomerLe
     };
 
     return (
-        <AppShell title={`Customer Ledger: ${customer.name}`} subtitle="Customer statement with running balance and export." activeKey="reports">
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Card
-                    className="dp-dense-card"
-                    extra={
-                        <Space wrap>
-                            <a href={withQuery(paths.reports.customerLedger(customer.id), { ...localFilters, export: 'csv' })}>
-                                <Button>CSV</Button>
-                            </a>
-                            <a href={withQuery(paths.reports.customerLedger(customer.id), { ...localFilters, export: 'xlsx' })}>
-                                <Button type="primary">XLSX</Button>
-                            </a>
-                        </Space>
-                    }
-                >
-                    <div className="grid gap-4 lg:grid-cols-3">
-                        <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} placeholder="Date from" />
-                        <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} placeholder="Date to" />
-                        <Button type="primary" onClick={() => applyFilters()}>
-                            Apply
-                        </Button>
+        <AppShell title={`Customer Ledger ${customer.name}`} subtitle="Ledger Statement" activeKey="reports">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Filters</h3>
                     </div>
-                </Card>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">From</label>
+                            <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">To</label>
+                            <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-8">
+                            <label className="dp-field-label">Actions</label>
+                            <div>
+                                <Button type="primary" onClick={() => applyFilters()}>
+                                    Show
+                                </Button>{' '}
+                                <a href={withQuery(paths.reports.customerLedger(customer.id), { ...localFilters, export: 'csv' })}>
+                                    <Button>Export CSV</Button>
+                                </a>{' '}
+                                <a href={withQuery(paths.reports.customerLedger(customer.id), { ...localFilters, export: 'xlsx' })}>
+                                    <Button>Export XLSX</Button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                <Card className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Rows</h3>
+                    </div>
                     <Table
                         rowKey={(record, index) => `${record.reference}-${index}`}
                         size="small"
                         dataSource={ledger.data}
-                        locale={{ emptyText: 'No customer ledger entries found for selected period.' }}
+                        locale={{ emptyText: 'No customer ledger rows for selected period.' }}
                         pagination={{
                             current: ledger.meta.currentPage,
                             total: ledger.meta.total,
@@ -93,8 +104,8 @@ export default function CustomerLedger({ customer, ledger, filters }: CustomerLe
                             { title: 'Notes', dataIndex: 'notes', render: (value) => value || '-' },
                         ]}
                     />
-                </Card>
-            </Space>
+                </section>
+            </div>
         </AppShell>
     );
 }

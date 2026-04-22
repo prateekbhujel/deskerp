@@ -1,12 +1,16 @@
-import { CustomerLookupRecord } from '@/components/forms/QuickAddCustomerModal';
 import { RemoteLookupSelect } from '@/components/forms/RemoteLookupSelect';
 import { AppShell } from '@/components/layout/AppShell';
 import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 import { paths } from '@/lib/paths';
 import { LookupOption } from '@/types/shared';
 import { router } from '@inertiajs/react';
-import { Button, Space } from 'antd';
+import { Button } from 'antd';
 import { useState } from 'react';
+
+interface CustomerLookupRecord {
+    id: number;
+    name: string;
+}
 
 interface SupplierLookupRecord {
     id: number;
@@ -21,11 +25,11 @@ export default function ReportsIndex() {
     return (
         <AppShell title="Reports" subtitle={`Report center | ${shortcuts.reports} open reports`} activeKey="reports" mode="Posted">
             <div className="dp-form-page">
-                <section className="dp-form-section">
-                    <div className="dp-form-section-head">
-                        <h3 className="dp-form-section-title">Operational Reports</h3>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Operational Reports</h3>
                     </div>
-                    <div className="dp-form-section-body">
+                    <div className="dp-section-body">
                         <div className="grid gap-2 md:grid-cols-3">
                             <button className="dp-report-link" onClick={() => router.visit(paths.reports.sales)} type="button">
                                 <span>Sales Report</span>
@@ -43,11 +47,11 @@ export default function ReportsIndex() {
                     </div>
                 </section>
 
-                <section className="dp-form-section">
-                    <div className="dp-form-section-head">
-                        <h3 className="dp-form-section-title">Ledger Lookup</h3>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Ledger Lookup</h3>
                     </div>
-                    <div className="dp-form-section-body">
+                    <div className="dp-section-body">
                         <div className="dp-form-grid">
                             <div className="dp-field col-span-12 xl:col-span-6">
                                 <label className="dp-field-label">Customer Ledger</label>
@@ -60,7 +64,6 @@ export default function ReportsIndex() {
                                         label: record.name,
                                         record,
                                     })}
-                                    placeholder="Search customer"
                                 />
                                 <Button style={{ marginTop: 6 }} type="primary" disabled={!customerOption} onClick={() => customerOption && router.visit(paths.reports.customerLedger(customerOption.record.id))}>
                                     Open Customer Ledger
@@ -78,7 +81,6 @@ export default function ReportsIndex() {
                                         label: record.name,
                                         record,
                                     })}
-                                    placeholder="Search supplier"
                                 />
                                 <Button style={{ marginTop: 6 }} type="primary" disabled={!supplierOption} onClick={() => supplierOption && router.visit(paths.reports.supplierLedger(supplierOption.record.id))}>
                                     Open Supplier Ledger
@@ -88,16 +90,12 @@ export default function ReportsIndex() {
                     </div>
                 </section>
 
-                <section className="dp-form-section">
-                    <div className="dp-form-section-head">
-                        <h3 className="dp-form-section-title">Export Modes</h3>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Export Modes</h3>
                     </div>
-                    <div className="dp-form-section-body">
-                        <Space size={6} wrap>
-                            <span className="dp-kbd">CSV</span>
-                            <span className="dp-kbd">XLSX</span>
-                            <span className="dp-kbd">Print</span>
-                        </Space>
+                    <div className="dp-section-body">
+                        <span className="dp-kbd">CSV</span> <span className="dp-kbd">XLSX</span> <span className="dp-kbd">Print</span>
                     </div>
                 </section>
             </div>

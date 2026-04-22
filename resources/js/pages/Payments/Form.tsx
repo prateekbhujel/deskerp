@@ -1,5 +1,4 @@
 import { BsDateInput } from '@/components/forms/BsDateInput';
-import { CustomerLookupRecord, QuickAddCustomerModal } from '@/components/forms/QuickAddCustomerModal';
 import { RemoteLookupSelect } from '@/components/forms/RemoteLookupSelect';
 import { AppShell } from '@/components/layout/AppShell';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -7,9 +6,20 @@ import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 import { coerceNumber } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { LookupOption, SharedProps } from '@/types/shared';
-import { useForm, usePage } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { Button, Input, InputNumber, Select, Space } from 'antd';
-import { useState } from 'react';
+import { KeyboardEvent as ReactKeyboardEvent, useState } from 'react';
+
+interface CustomerLookupRecord {
+    id: number;
+    name: string;
+    code?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    taxNumber?: string | null;
+    billingAddress?: string | null;
+}
 
 interface SupplierLookupRecord {
     id: number;
@@ -54,7 +64,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
     const page = usePage<SharedProps>();
     const useBsDates = page.props.settings.displayBsDates;
     const { isMac, shortcuts } = usePlatformShortcuts();
-    const [customerModalOpen, setCustomerModalOpen] = useState(false);
+
     const [customerOption, setCustomerOption] = useState<LookupOption<CustomerLookupRecord> | null>(
         selected_customer
             ? {
@@ -82,6 +92,21 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
               }
             : null,
     );
+
+    const [showQuickCustomer, setShowQuickCustomer] = useState(false);
+    const [quickCustomerSaving, setQuickCustomerSaving] = useState(false);
+    const [quickCustomerErrors, setQuickCustomerErrors] = useState<Record<string, string>>({});
+    const [quickCustomerData, setQuickCustomerData] = useState({
+        name: '',
+        code: '',
+        phone: '',
+        email: '',
+        billing_address: '',
+        opening_balance: 0,
+        credit_limit: 0,
+        is_active: true,
+    });
+
     const { data, setData, post, put, processing, errors, transform } = useForm({
         direction: payment.direction,
         customer_id: payment.customer_id,
@@ -94,12 +119,11 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
         notes: payment.notes ?? '',
     });
 
-    const selectedPartyName = data.direction === 'received' ? customerOption?.record.name : supplierOption?.record.name;
     const selectedInvoiceBalance = coerceNumber(invoiceOption?.record.balanceDue);
     const enteredAmount = coerceNumber(data.amount);
-    const balanceAfterPosting = selectedInvoiceBalance - enteredAmount;
     const overpaymentAmount = Math.max(enteredAmount - selectedInvoiceBalance, 0);
     const hasOverpayment = data.direction === 'received' && Boolean(invoiceOption) && overpaymentAmount > 0;
+    const balanceAfter = Math.max(selectedInvoiceBalance - enteredAmount, 0);
 
     const submit = () => {
         transform((current) => ({
@@ -109,21 +133,18 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
         }));
 
         if (mode === 'create') {
-            post(paths.payments.store, {
-                preserveScroll: true,
-            });
+            post(paths.payments.store, { preserveScroll: true });
             return;
         }
 
-        put(paths.payments.update(payment.id as number), {
-            preserveScroll: true,
-        });
+        put(paths.payments.update(payment.id as number), { preserveScroll: true });
     };
 
     const clearForm = () => {
         setCustomerOption(null);
         setSupplierOption(null);
         setInvoiceOption(null);
+        setShowQuickCustomer(false);
         setData({
             direction: payment.direction,
             customer_id: null,
@@ -137,6 +158,55 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
         });
     };
 
+    const saveQuickCustomer = async () => {
+        setQuickCustomerSaving(true);
+        setQuickCustomerErrors({});
+
+        try {
+            const response = await axios.post<CustomerLookupRecord>(paths.customers.store, quickCustomerData, {
+                headers: { Accept: 'application/json' },
+            });
+            const record = response.data;
+            const option: LookupOption<CustomerLookupRecord> = {
+                value: record.id,
+                label: record.name,
+                record,
+            };
+            setCustomerOption(option);
+            setData('customer_id', record.id);
+            setShowQuickCustomer(false);
+            setQuickCustomerData({
+                name: '',
+                code: '',
+                phone: '',
+                email: '',
+                billing_address: '',
+                opening_balance: 0,
+                credit_limit: 0,
+                is_active: true,
+            });
+        } catch (error: any) {
+            if (error?.response?.status === 422) {
+                setQuickCustomerErrors(error.response.data.errors ?? {});
+            }
+        } finally {
+            setQuickCustomerSaving(false);
+        }
+    };
+
+    const handleVoucherKey = (event: ReactKeyboardEvent<HTMLElement>) => {
+        if (event.key !== 'Enter' || event.shiftKey) {
+            return;
+        }
+
+        event.preventDefault();
+        const fields = [...document.querySelectorAll<HTMLElement>('[data-voucher-field="true"]')];
+        const index = fields.findIndex((field) => field === event.currentTarget);
+        if (index >= 0) {
+            fields[index + 1]?.focus();
+        }
+    };
+
     useKeyboardShortcuts([
         {
             key: 's',
@@ -144,25 +214,6 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
             meta: isMac,
             allowInInputs: true,
             handler: () => submit(),
-        },
-        {
-            key: 'c',
-            alt: true,
-            allowInInputs: true,
-            handler: () => {
-                if (data.direction === 'received') {
-                    setCustomerModalOpen(true);
-                }
-            },
-        },
-        {
-            key: 'i',
-            alt: true,
-            allowInInputs: true,
-            handler: () => {
-                const target = document.querySelector<HTMLElement>('[data-testid="payment-open-invoice-select"] .ant-select-selector');
-                target?.click();
-            },
         },
         {
             key: 'a',
@@ -182,29 +233,46 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
             allowInInputs: true,
             handler: () => document.getElementById('payment-notes-field')?.focus(),
         },
+        {
+            key: 'i',
+            alt: true,
+            allowInInputs: true,
+            handler: () => {
+                const target = document.querySelector<HTMLElement>('[data-testid="payment-open-invoice-select"] .ant-select-selector');
+                target?.focus();
+                target?.click();
+            },
+        },
+        {
+            key: 'c',
+            alt: true,
+            allowInInputs: true,
+            handler: () => {
+                if (data.direction === 'received') {
+                    setShowQuickCustomer((current) => !current);
+                }
+            },
+        },
+        {
+            key: 'Escape',
+            allowInInputs: true,
+            handler: () => router.visit(paths.payments.index),
+        },
     ]);
 
     return (
         <AppShell
-            title={mode === 'create' ? 'New Payment Entry' : 'Edit Payment Entry'}
-            subtitle={`Voucher entry | ${shortcuts.save} save | ${shortcuts.searchInvoice} invoice search`}
+            title={mode === 'create' ? 'Payment Voucher' : `Payment Voucher ${selected_invoice?.invoiceNumber ?? ''}`}
+            subtitle="Payment Entry"
             activeKey="payments"
             mode={mode === 'create' ? 'Draft' : 'Posted'}
-            extra={
-                <Space size={6} wrap>
-                    <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
-                        Save Payment
-                    </Button>
-                    <Button onClick={clearForm}>Clear ({shortcuts.clearForm})</Button>
-                </Space>
-            }
         >
             <div className="dp-form-page" data-shortcut-scope="voucher">
-                <section className="dp-form-section">
-                    <div className="dp-form-section-head">
-                        <h3 className="dp-form-section-title">Voucher Header</h3>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Voucher Header</h3>
                     </div>
-                    <div className="dp-form-section-body">
+                    <div className="dp-section-body">
                         <div className="dp-form-grid">
                             <div className="dp-field col-span-12 xl:col-span-2">
                                 <label className="dp-field-label">Direction</label>
@@ -230,9 +298,9 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 />
                             </div>
 
-                            <div className="dp-field col-span-12 xl:col-span-3">
-                                <label className="dp-field-label">Payment Date</label>
-                                <BsDateInput value={data.payment_date} onChange={(value) => setData('payment_date', value)} displayBsDates={useBsDates} placeholder="Payment date" />
+                            <div className="dp-field col-span-12 xl:col-span-2">
+                                <label className="dp-field-label">Date</label>
+                                <BsDateInput value={data.payment_date} onChange={(value) => setData('payment_date', value)} displayBsDates={useBsDates} />
                                 {errors.payment_date ? <span className="dp-error-text">{errors.payment_date}</span> : null}
                             </div>
 
@@ -241,10 +309,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 <Select
                                     value={data.method}
                                     onChange={(value) => setData('method', value)}
-                                    options={methods.map((method) => ({
-                                        value: method,
-                                        label: method,
-                                    }))}
+                                    options={methods.map((method) => ({ value: method, label: method.toUpperCase() }))}
                                 />
                                 {errors.method ? <span className="dp-error-text">{errors.method}</span> : null}
                             </div>
@@ -252,59 +317,59 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                             <div className="dp-field col-span-12 xl:col-span-2">
                                 <label className="dp-field-label">Amount</label>
                                 <InputNumber
+                                    controls={false}
                                     id="payment-amount-input"
                                     data-testid="payment-amount"
+                                    data-voucher-field="true"
                                     className="w-full"
                                     value={Number(data.amount)}
                                     min={0}
                                     step={0.01}
-                                    onChange={(value) => setData('amount', String(value ?? ''))}
+                                    onChange={(value) => setData('amount', String(value ?? '0'))}
+                                    onBlur={() => setData('amount', Number(data.amount || 0).toFixed(2))}
+                                    onKeyDown={handleVoucherKey}
                                 />
                                 {errors.amount ? <span className="dp-error-text">{errors.amount}</span> : null}
                             </div>
 
-                            <div className="dp-field col-span-12 xl:col-span-3">
+                            <div className="dp-field col-span-12 xl:col-span-4">
                                 <label className="dp-field-label">Reference</label>
-                                <Input value={data.reference_number ?? ''} onChange={(event) => setData('reference_number', event.target.value)} placeholder="Voucher reference" />
+                                <Input
+                                    data-voucher-field="true"
+                                    value={data.reference_number ?? ''}
+                                    onChange={(event) => setData('reference_number', event.target.value)}
+                                    onKeyDown={handleVoucherKey}
+                                />
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <section className="dp-form-section">
-                    <div className="dp-form-section-head">
-                        <h3 className="dp-form-section-title">Allocation</h3>
-                        <Space size={6}>
-                            <span className="dp-kbd">{shortcuts.focusAmount}</span>
-                            <span className="dp-kbd">{shortcuts.clearForm}</span>
-                        </Space>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Allocation</h3>
+                        {data.direction === 'received' ? <Button onClick={() => setShowQuickCustomer((current) => !current)}>Add Customer {shortcuts.addCustomer}</Button> : null}
                     </div>
-                    <div className="dp-form-section-body">
+                    <div className="dp-section-body">
                         <div className="dp-form-grid">
                             {data.direction === 'received' ? (
                                 <>
                                     <div className="dp-field col-span-12 xl:col-span-4">
-                                        <label className="dp-field-label">Customer Account</label>
-                                        <Space.Compact style={{ width: '100%' }}>
-                                            <div style={{ flex: 1 }}>
-                                                <RemoteLookupSelect<CustomerLookupRecord>
-                                                    endpoint={paths.lookups.customers}
-                                                    value={customerOption}
-                                                    onChange={(option) => {
-                                                        setCustomerOption(option);
-                                                        setData('customer_id', option?.record.id ?? null);
-                                                    }}
-                                                    mapOption={(record) => ({
-                                                        value: Number(record.id),
-                                                        label: record.name,
-                                                        record,
-                                                    })}
-                                                    placeholder="Search customer"
-                                                    testId="payment-customer-select"
-                                                />
-                                            </div>
-                                            <Button onClick={() => setCustomerModalOpen(true)}>Customer</Button>
-                                        </Space.Compact>
+                                        <label className="dp-field-label">Customer</label>
+                                        <RemoteLookupSelect<CustomerLookupRecord>
+                                            endpoint={paths.lookups.customers}
+                                            value={customerOption}
+                                            onChange={(option) => {
+                                                setCustomerOption(option);
+                                                setData('customer_id', option?.record.id ?? null);
+                                            }}
+                                            mapOption={(record) => ({
+                                                value: Number(record.id),
+                                                label: record.name,
+                                                record,
+                                            })}
+                                            testId="payment-customer-select"
+                                        />
                                         {errors.customer_id ? <span className="dp-error-text">{errors.customer_id}</span> : null}
                                     </div>
 
@@ -329,7 +394,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                                     });
 
                                                     if (!Number(data.amount)) {
-                                                        setData('amount', String(option.record.balanceDue));
+                                                        setData('amount', Number(option.record.balanceDue || 0).toFixed(2));
                                                     }
                                                 }
                                             }}
@@ -338,8 +403,6 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                                 label: `${record.invoiceNumber} (${record.customerName})`,
                                                 record,
                                             })}
-                                            placeholder="Search open invoices"
-                                            allowClear
                                             testId="payment-open-invoice-select"
                                         />
                                         {errors.invoice_id ? <span className="dp-error-text">{errors.invoice_id}</span> : null}
@@ -347,7 +410,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                 </>
                             ) : (
                                 <div className="dp-field col-span-12 xl:col-span-4">
-                                    <label className="dp-field-label">Supplier Account</label>
+                                    <label className="dp-field-label">Supplier</label>
                                     <RemoteLookupSelect<SupplierLookupRecord>
                                         endpoint={paths.lookups.suppliers}
                                         value={supplierOption}
@@ -360,73 +423,138 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                                             label: record.name,
                                             record,
                                         })}
-                                        placeholder="Search supplier"
                                         testId="payment-supplier-select"
                                     />
                                     {errors.supplier_id ? <span className="dp-error-text">{errors.supplier_id}</span> : null}
                                 </div>
                             )}
 
-                            <div className="dp-field col-span-12 xl:col-span-4">
-                                <label className="dp-field-label">Notes / Narration</label>
+                            <div className="dp-field col-span-12 xl:col-span-8">
+                                <label className="dp-field-label">Narration</label>
                                 <Input.TextArea
                                     id="payment-notes-field"
-                                    rows={3}
+                                    rows={2}
+                                    data-voucher-field="true"
                                     value={data.notes ?? ''}
                                     onChange={(event) => setData('notes', event.target.value)}
-                                    placeholder="Narration or payment remarks"
+                                    onKeyDown={handleVoucherKey}
                                 />
                                 {errors.notes ? <span className="dp-error-text">{errors.notes}</span> : null}
                             </div>
                         </div>
 
-                        {hasOverpayment ? <div className="dp-error-text">Amount exceeds outstanding by {overpaymentAmount.toFixed(2)}.</div> : null}
+                        {showQuickCustomer && data.direction === 'received' ? (
+                            <div style={{ marginTop: 8, border: '1px solid #999', padding: 8 }}>
+                                <div className="dp-form-grid">
+                                    <div className="dp-field col-span-12 xl:col-span-3">
+                                        <label className="dp-field-label">Name</label>
+                                        <Input
+                                            value={quickCustomerData.name}
+                                            onChange={(event) =>
+                                                setQuickCustomerData((current) => ({
+                                                    ...current,
+                                                    name: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                        {quickCustomerErrors.name ? <span className="dp-error-text">{quickCustomerErrors.name}</span> : null}
+                                    </div>
+                                    <div className="dp-field col-span-12 xl:col-span-2">
+                                        <label className="dp-field-label">Code</label>
+                                        <Input
+                                            value={quickCustomerData.code}
+                                            onChange={(event) =>
+                                                setQuickCustomerData((current) => ({
+                                                    ...current,
+                                                    code: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                    <div className="dp-field col-span-12 xl:col-span-2">
+                                        <label className="dp-field-label">Phone</label>
+                                        <Input
+                                            value={quickCustomerData.phone}
+                                            onChange={(event) =>
+                                                setQuickCustomerData((current) => ({
+                                                    ...current,
+                                                    phone: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                    <div className="dp-field col-span-12 xl:col-span-2">
+                                        <label className="dp-field-label">Email</label>
+                                        <Input
+                                            value={quickCustomerData.email}
+                                            onChange={(event) =>
+                                                setQuickCustomerData((current) => ({
+                                                    ...current,
+                                                    email: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                    <div className="dp-field col-span-12 xl:col-span-3">
+                                        <label className="dp-field-label">Address</label>
+                                        <Input
+                                            value={quickCustomerData.billing_address}
+                                            onChange={(event) =>
+                                                setQuickCustomerData((current) => ({
+                                                    ...current,
+                                                    billing_address: event.target.value,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: 8 }}>
+                                    <Space size={6}>
+                                        <Button type="primary" onClick={saveQuickCustomer} loading={quickCustomerSaving}>
+                                            Save Customer
+                                        </Button>
+                                        <Button onClick={() => setShowQuickCustomer(false)}>Cancel</Button>
+                                    </Space>
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {hasOverpayment ? <div className="dp-error-text" style={{ marginTop: 6 }}>Amount exceeds outstanding by {overpaymentAmount.toFixed(2)}.</div> : null}
                     </div>
                 </section>
 
-                <section className="dp-form-section">
-                    <div className="dp-form-section-head">
-                        <h3 className="dp-form-section-title">Summary</h3>
-                        <span>{data.direction === 'received' ? 'Receipt' : 'Payment'}</span>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Summary</h3>
                     </div>
-                    <div className="dp-form-section-body">
-                        <div className="dp-summary-grid">
-                            <span>Party</span>
-                            <strong>{selectedPartyName || '-'}</strong>
-                            <span>Amount</span>
-                            <strong>{enteredAmount.toFixed(2)}</strong>
-                            <span>Method</span>
-                            <strong>{data.method || '-'}</strong>
-                            {data.direction === 'received' ? (
-                                <>
-                                    <span>Outstanding</span>
-                                    <strong>{selectedInvoiceBalance.toFixed(2)}</strong>
-                                    <span className="dp-summary-total">Balance Left</span>
-                                    <strong className="dp-summary-total">{Math.max(balanceAfterPosting, 0).toFixed(2)}</strong>
-                                </>
-                            ) : null}
-                        </div>
+                    <div className="dp-summary-grid">
+                        <span>Entry</span>
+                        <strong>{data.direction === 'received' ? 'Receive Payment' : 'Make Payment'}</strong>
+                        <span>Amount</span>
+                        <strong>{enteredAmount.toFixed(2)}</strong>
+                        <span>Method</span>
+                        <strong>{data.method.toUpperCase()}</strong>
+                        {data.direction === 'received' ? (
+                            <>
+                                <span>Outstanding</span>
+                                <strong>{selectedInvoiceBalance.toFixed(2)}</strong>
+                                <span className="dp-summary-total">Balance Left</span>
+                                <strong className="dp-summary-total">{balanceAfter.toFixed(2)}</strong>
+                            </>
+                        ) : null}
+                    </div>
+                </section>
 
-                        <div style={{ marginTop: 8 }}>
-                            <Space size={6} wrap>
-                                <span className="dp-kbd">{shortcuts.save}</span>
-                                <span className="dp-kbd">{shortcuts.addCustomer}</span>
-                                <span className="dp-kbd">{shortcuts.searchInvoice}</span>
-                                <span className="dp-kbd">{shortcuts.notesField}</span>
-                            </Space>
-                        </div>
-                    </div>
+                <section className="dp-section-block">
+                    <Space size={6}>
+                        <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
+                            Save ({shortcuts.save})
+                        </Button>
+                        <Button onClick={clearForm}>Clear ({shortcuts.clearForm})</Button>
+                        <Button onClick={() => router.visit(paths.payments.index)}>Cancel ({shortcuts.goBack})</Button>
+                    </Space>
                 </section>
             </div>
-
-            <QuickAddCustomerModal
-                open={customerModalOpen}
-                onClose={() => setCustomerModalOpen(false)}
-                onCreated={(option) => {
-                    setCustomerOption(option);
-                    setData('customer_id', option.record.id);
-                }}
-            />
         </AppShell>
     );
 }

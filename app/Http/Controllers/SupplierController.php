@@ -5,13 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\Supplier;
-use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SupplierController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
         $suppliers = Supplier::query()
             ->when($request->filled('q'), function ($query) use ($request): void {
@@ -31,39 +33,117 @@ class SupplierController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('suppliers.index', compact('suppliers'));
-    }
-
-    public function create(): View
-    {
-        return view('suppliers.create', [
-            'supplier' => new Supplier([
-                'is_active' => true,
-            ]),
+        return Inertia::render('Suppliers/Index', [
+            'suppliers' => [
+                'data' => $suppliers->getCollection()->map(fn (Supplier $supplier) => [
+                    'id' => $supplier->id,
+                    'code' => $supplier->code,
+                    'name' => $supplier->name,
+                    'phone' => $supplier->phone,
+                    'email' => $supplier->email,
+                    'opening_balance' => $supplier->opening_balance,
+                    'is_active' => $supplier->is_active,
+                ]),
+                'meta' => $this->paginationMeta($suppliers),
+            ],
+            'filters' => [
+                'q' => $request->string('q')->toString(),
+                'status' => $request->string('status')->toString(),
+            ],
         ]);
     }
 
-    public function store(StoreSupplierRequest $request): RedirectResponse
+    public function create(): Response
+    {
+        return Inertia::render('Suppliers/Form', [
+            'mode' => 'create',
+            'supplier' => [
+                'id' => null,
+                'code' => '',
+                'name' => '',
+                'contact_person' => '',
+                'phone' => '',
+                'email' => '',
+                'tax_number' => '',
+                'billing_address' => '',
+                'opening_balance' => '0.00',
+                'notes' => '',
+                'is_active' => true,
+            ],
+        ]);
+    }
+
+    public function store(StoreSupplierRequest $request): RedirectResponse|JsonResponse
     {
         $supplier = Supplier::query()->create($this->validatedData($request));
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id' => $supplier->id,
+                'name' => $supplier->name,
+                'code' => $supplier->code,
+                'phone' => $supplier->phone,
+                'email' => $supplier->email,
+                'taxNumber' => $supplier->tax_number,
+                'billingAddress' => $supplier->billing_address,
+            ]);
+        }
 
         return redirect()
             ->route('suppliers.show', $supplier)
             ->with('success', 'Supplier created successfully.');
     }
 
-    public function show(Supplier $supplier): View
+    public function show(Supplier $supplier): Response
     {
         $supplier->load([
             'payments' => fn ($query) => $query->latest('payment_date')->limit(10),
         ]);
 
-        return view('suppliers.show', compact('supplier'));
+        return Inertia::render('Suppliers/Show', [
+            'supplier' => [
+                'id' => $supplier->id,
+                'code' => $supplier->code,
+                'name' => $supplier->name,
+                'contact_person' => $supplier->contact_person,
+                'phone' => $supplier->phone,
+                'email' => $supplier->email,
+                'tax_number' => $supplier->tax_number,
+                'opening_balance' => $supplier->opening_balance,
+                'billing_address' => $supplier->billing_address,
+                'notes' => $supplier->notes,
+                'is_active' => $supplier->is_active,
+                'payments' => $supplier->payments->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'payment_number' => $payment->payment_number,
+                    'payment_date' => optional($payment->payment_date)->format('Y-m-d'),
+                    'method' => $payment->method,
+                    'direction' => $payment->direction,
+                    'amount' => $payment->amount,
+                    'reference_number' => $payment->reference_number,
+                ]),
+            ],
+        ]);
     }
 
-    public function edit(Supplier $supplier): View
+    public function edit(Supplier $supplier): Response
     {
-        return view('suppliers.edit', compact('supplier'));
+        return Inertia::render('Suppliers/Form', [
+            'mode' => 'edit',
+            'supplier' => [
+                'id' => $supplier->id,
+                'code' => $supplier->code,
+                'name' => $supplier->name,
+                'contact_person' => $supplier->contact_person,
+                'phone' => $supplier->phone,
+                'email' => $supplier->email,
+                'tax_number' => $supplier->tax_number,
+                'billing_address' => $supplier->billing_address,
+                'opening_balance' => (string) $supplier->opening_balance,
+                'notes' => $supplier->notes,
+                'is_active' => $supplier->is_active,
+            ],
+        ]);
     }
 
     public function update(UpdateSupplierRequest $request, Supplier $supplier): RedirectResponse
@@ -94,5 +174,17 @@ class SupplierController extends Controller
         $validated['is_active'] = $request->boolean('is_active', true);
 
         return $validated;
+    }
+
+    private function paginationMeta($paginator): array
+    {
+        return [
+            'currentPage' => $paginator->currentPage(),
+            'lastPage' => $paginator->lastPage(),
+            'perPage' => $paginator->perPage(),
+            'total' => $paginator->total(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+        ];
     }
 }

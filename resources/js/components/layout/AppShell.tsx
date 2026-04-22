@@ -1,23 +1,10 @@
-import {
-    AppstoreOutlined,
-    BookOutlined,
-    DatabaseOutlined,
-    FileTextOutlined,
-    LineChartOutlined,
-    MenuFoldOutlined,
-    MenuUnfoldOutlined,
-    SettingOutlined,
-    ShopOutlined,
-    SwapOutlined,
-    ToolOutlined,
-} from '@ant-design/icons';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 import { paths, withQuery } from '@/lib/paths';
 import { SharedProps } from '@/types/shared';
-import { Link, router, usePage } from '@inertiajs/react';
-import { Button, Input, Layout, Space, Typography } from 'antd';
-import { PropsWithChildren, ReactNode, useMemo, useState } from 'react';
+import { router, usePage } from '@inertiajs/react';
+import { Button, Input, Layout } from 'antd';
+import { PropsWithChildren, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 const { Header, Sider, Content } = Layout;
 
@@ -33,57 +20,130 @@ interface NavItem {
     key: string;
     label: string;
     href: string;
-    shortcut: string;
-    icon: ReactNode;
-    native?: boolean;
+    shortcut?: string;
+}
+
+interface NavSection {
+    title: string;
+    items: NavItem[];
+}
+
+function isEditableTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    return Boolean(target.closest('input, textarea, select, [contenteditable="true"], .ant-select-dropdown, .ant-picker-dropdown'));
 }
 
 export function AppShell({ title, subtitle, activeKey, extra, children, mode }: AppShellProps) {
     const page = usePage<SharedProps>();
     const { isMac, shortcuts } = usePlatformShortcuts();
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarHidden, setSidebarHidden] = useState(false);
     const [invoiceSearch, setInvoiceSearch] = useState('');
+    const navRefs = useRef<Array<HTMLElement | null>>([]);
+    const isViewOnly = page.props.auth.user?.role === 'view_only';
 
-    const altLabel = (key: string) => (isMac ? `⌥${key.toUpperCase()}` : `Alt+${key.toUpperCase()}`);
-
-    const navSections = useMemo(
-        () =>
-            [
-                {
-                    title: 'Workspace',
-                    items: [
-                        { key: 'dashboard', label: 'Dashboard', href: paths.dashboard, shortcut: altLabel('d'), icon: <AppstoreOutlined /> },
-                        { key: 'reports', label: 'Reports', href: paths.reports.index, shortcut: shortcuts.reports, icon: <LineChartOutlined /> },
-                    ],
-                },
-                {
-                    title: 'Masters',
-                    items: [
-                        { key: 'customers', label: 'Customers', href: paths.customers.index, shortcut: altLabel('k'), icon: <ShopOutlined />, native: true },
-                        { key: 'suppliers', label: 'Suppliers', href: paths.suppliers.index, shortcut: altLabel('u'), icon: <SwapOutlined />, native: true },
-                        { key: 'items', label: 'Inventory & Pricing', href: paths.items.index, shortcut: altLabel('m'), icon: <DatabaseOutlined /> },
-                    ] satisfies NavItem[],
-                },
-                {
-                    title: 'Transactions',
-                    items: [
-                        { key: 'invoices', label: 'Invoices', href: paths.invoices.index, shortcut: shortcuts.searchInvoice, icon: <BookOutlined /> },
-                        { key: 'payments', label: 'Payments', href: paths.payments.index, shortcut: shortcuts.newPayment, icon: <FileTextOutlined /> },
-                    ] satisfies NavItem[],
-                },
-                {
-                    title: 'System',
-                    items: [
-                        { key: 'settings', label: 'Settings', href: paths.settings, shortcut: altLabel('s'), icon: <SettingOutlined /> },
-                        { key: 'backups', label: 'Backup / Restore', href: paths.backups, shortcut: altLabel('b'), icon: <ToolOutlined /> },
-                    ] satisfies NavItem[],
-                },
-            ] as Array<{ title: string; items: NavItem[] }>,
-        [isMac, shortcuts.newPayment, shortcuts.reports, shortcuts.searchInvoice],
+    const navSections = useMemo<NavSection[]>(
+        () => [
+            {
+                title: 'Transactions',
+                items: [
+                    { key: 'new-invoice', label: 'Sales Voucher', href: paths.invoices.create, shortcut: shortcuts.newInvoice },
+                    { key: 'new-receipt', label: 'Receive Payment', href: paths.payments.createReceived, shortcut: shortcuts.newPayment },
+                    { key: 'new-payment', label: 'Make Payment', href: paths.payments.createMade },
+                    { key: 'invoices', label: 'Invoices Register', href: paths.invoices.index, shortcut: shortcuts.searchInvoice },
+                    { key: 'payments', label: 'Payments Register', href: paths.payments.index },
+                ],
+            },
+            {
+                title: 'Masters',
+                items: [
+                    { key: 'items', label: 'Items & Pricing', href: paths.items.index, shortcut: isMac ? '⌥M' : 'Alt+M' },
+                    { key: 'customers', label: 'Customers', href: paths.customers.index, shortcut: isMac ? '⌥K' : 'Alt+K' },
+                    { key: 'suppliers', label: 'Suppliers', href: paths.suppliers.index, shortcut: isMac ? '⌥U' : 'Alt+U' },
+                ],
+            },
+            {
+                title: 'Reports',
+                items: [
+                    { key: 'reports', label: 'Main Reports', href: paths.reports.index, shortcut: shortcuts.reports },
+                    { key: 'report-sales', label: 'Sales Register', href: paths.reports.sales },
+                    { key: 'report-payments', label: 'Payment Report', href: paths.reports.payments },
+                    { key: 'report-stock', label: 'Stock Summary', href: paths.reports.inventory },
+                ],
+            },
+            {
+                title: 'System',
+                items: [
+                    { key: 'dashboard', label: 'Main Menu', href: paths.dashboard, shortcut: isMac ? '⌥D' : 'Alt+D' },
+                    { key: 'settings', label: 'Settings / Fiscal Year', href: paths.settings },
+                    { key: 'backups', label: 'Backup / Restore', href: paths.backups },
+                ],
+            },
+        ],
+        [isMac, shortcuts.newInvoice, shortcuts.newPayment, shortcuts.reports, shortcuts.searchInvoice],
     );
 
-    const currentMode = mode ?? 'Posted';
-    const fiscalLabel = page.props.settings.fiscalYear.label ? `FY ${page.props.settings.fiscalYear.label}` : 'FY Not Set';
+    const filteredSections = useMemo(() => {
+        if (!isViewOnly) {
+            return navSections;
+        }
+
+        return navSections.map((section) => ({
+            ...section,
+            items: section.items.filter((item) => !['new-invoice', 'new-receipt', 'new-payment'].includes(item.key)),
+        }));
+    }, [isViewOnly, navSections]);
+
+    const flatNav = useMemo(() => filteredSections.flatMap((section) => section.items), [filteredSections]);
+    const defaultNavIndex = useMemo(() => Math.max(flatNav.findIndex((item) => item.key === activeKey), 0), [activeKey, flatNav]);
+    const [focusedNavIndex, setFocusedNavIndex] = useState(defaultNavIndex);
+
+    useEffect(() => {
+        setFocusedNavIndex(defaultNavIndex);
+    }, [defaultNavIndex]);
+
+    useEffect(() => {
+        const listener = (event: KeyboardEvent) => {
+            if (isEditableTarget(event.target)) {
+                return;
+            }
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                const nextIndex = Math.min(focusedNavIndex + 1, flatNav.length - 1);
+                setFocusedNavIndex(nextIndex);
+                navRefs.current[nextIndex]?.focus();
+            }
+
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                const nextIndex = Math.max(focusedNavIndex - 1, 0);
+                setFocusedNavIndex(nextIndex);
+                navRefs.current[nextIndex]?.focus();
+            }
+
+            if (event.key === 'Enter') {
+                const target = navRefs.current[focusedNavIndex];
+
+                if (target) {
+                    event.preventDefault();
+                    target.click();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', listener);
+
+        return () => {
+            window.removeEventListener('keydown', listener);
+        };
+    }, [flatNav.length, focusedNavIndex]);
+
+    const fiscalLabel = page.props.settings.fiscalYear.label ? `FY ${page.props.settings.fiscalYear.label}` : 'FY ---';
+    const currentMode = mode ?? 'Draft';
+    const todayDate = new Date().toLocaleDateString('en-CA');
 
     const submitInvoiceSearch = () => {
         router.visit(withQuery(paths.invoices.index, { q: invoiceSearch }), {
@@ -97,76 +157,45 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
             key: 'n',
             alt: true,
             allowInInputs: true,
-            handler: () => router.visit(paths.invoices.create),
+            handler: () => {
+                if (!isViewOnly) {
+                    router.visit(paths.invoices.create);
+                }
+            },
         },
         {
             key: 'p',
             alt: true,
             allowInInputs: true,
-            handler: () => router.visit(paths.payments.createReceived),
-        },
-        {
-            key: 'd',
-            alt: true,
-            handler: () => router.visit(paths.dashboard),
+            handler: () => {
+                if (!isViewOnly) {
+                    router.visit(paths.payments.createReceived);
+                }
+            },
         },
         {
             key: 'r',
             alt: true,
+            allowInInputs: true,
             handler: () => router.visit(paths.reports.index),
         },
         {
-            key: 'm',
+            key: 'd',
             alt: true,
-            handler: () => router.visit(paths.items.index),
-        },
-        {
-            key: 'v',
-            alt: true,
-            handler: () => router.visit(paths.invoices.index),
-        },
-        {
-            key: 's',
-            alt: true,
-            handler: () => router.visit(paths.settings),
-        },
-        {
-            key: 'b',
-            alt: true,
-            handler: () => {
-                router.visit(paths.backups);
-            },
+            allowInInputs: true,
+            handler: () => router.visit(paths.dashboard),
         },
         {
             key: '\\',
             alt: true,
             allowInInputs: true,
-            handler: () => setSidebarCollapsed((current) => !current),
-        },
-        {
-            key: 'k',
-            alt: true,
-            allowInInputs: true,
-            handler: () => {
-                window.location.href = paths.customers.index;
-            },
-        },
-        {
-            key: 'u',
-            alt: true,
-            handler: () => {
-                window.location.href = paths.suppliers.index;
-            },
+            handler: () => setSidebarHidden((value) => !value),
         },
         {
             key: 'i',
             alt: true,
             allowInInputs: true,
             handler: () => {
-                if (document.querySelector('[data-shortcut-scope="voucher"]')) {
-                    return;
-                }
-
                 const target = document.querySelector<HTMLInputElement>('[data-global-search="true"]');
                 target?.focus();
                 target?.select();
@@ -181,136 +210,117 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
                 target?.select();
             },
         },
+        {
+            key: 'k',
+            alt: true,
+            allowInInputs: true,
+            handler: () => router.visit(paths.customers.index),
+        },
+        {
+            key: 'u',
+            alt: true,
+            allowInInputs: true,
+            handler: () => router.visit(paths.suppliers.index),
+        },
+        {
+            key: 'm',
+            alt: true,
+            allowInInputs: true,
+            handler: () => router.visit(paths.items.index),
+        },
     ]);
+
+    let runningIndex = 0;
 
     return (
         <Layout className="dp-shell" style={{ minHeight: '100vh' }}>
-            <Sider width={238} collapsed={sidebarCollapsed} collapsedWidth={54} theme="dark" trigger={null} style={{ background: '#0b1020' }}>
-                <div className="dp-sidebar">
-                    <div className="dp-sidebar-brand">
-                        {!sidebarCollapsed ? (
-                            <>
-                                <Typography.Text style={{ color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase', fontSize: 11 }}>
-                                    DeskERP
-                                </Typography.Text>
-                                <Typography.Title level={5} style={{ color: 'white', margin: '4px 0 0' }}>
-                                    {page.props.settings.companyName || 'DeskERP'}
-                                </Typography.Title>
-                            </>
-                        ) : (
-                            <Typography.Text style={{ color: 'white', fontWeight: 700 }}>DP</Typography.Text>
-                        )}
-                    </div>
-
-                    {!sidebarCollapsed ? (
-                        <div className="dp-sidebar-quick">
-                            <Button size="small" type="primary" onClick={() => router.visit(paths.invoices.create)}>
-                                New Invoice <span className="dp-kbd">{shortcuts.newInvoice}</span>
-                            </Button>
-                            <Button size="small" onClick={() => router.visit(paths.payments.createReceived)}>
-                                Payment <span className="dp-kbd">{shortcuts.newPayment}</span>
-                            </Button>
+            {!sidebarHidden ? (
+                <Sider width={220} theme="dark" trigger={null} style={{ background: '#1a1e2e' }}>
+                    <div className="dp-sidebar">
+                        <div className="dp-sidebar-header">
+                            <span className="dp-sidebar-title">DESKERP</span>
+                            <span className="dp-kbd">{shortcuts.toggleSidebar}</span>
                         </div>
-                    ) : null}
 
-                    <div className="mt-2 space-y-4">
-                        {navSections.map((section) => (
-                            <div key={section.title}>
-                                {!sidebarCollapsed ? (
-                                    <Typography.Text style={{ color: '#64748b', letterSpacing: '0.14em', textTransform: 'uppercase', fontSize: 10 }}>
-                                        {section.title}
-                                    </Typography.Text>
-                                ) : null}
-                                <div className={sidebarCollapsed ? 'mt-1 space-y-1' : 'mt-1.5 space-y-1'}>
-                                    {section.items.map((item) => {
-                                        const content = (
-                                            <div className={`dp-nav-link ${activeKey === item.key ? 'dp-nav-link-active' : ''}`} data-active={activeKey === item.key ? 'true' : 'false'}>
-                                                <span className="dp-nav-link__main">
-                                                    <span className="dp-nav-link__icon">{item.icon}</span>
-                                                    {!sidebarCollapsed ? <span>{item.label}</span> : null}
-                                                </span>
-                                                {!sidebarCollapsed ? <span className="dp-kbd">{item.shortcut}</span> : null}
-                                            </div>
-                                        );
+                        {filteredSections.map((section) => (
+                            <section className="dp-sidebar-group" key={section.title}>
+                                <h3 className="dp-sidebar-group-title">{section.title}</h3>
+                                {section.items.map((item) => {
+                                    const navIndex = runningIndex++;
 
-                                        return item.native ? (
-                                            <a key={item.key} href={item.href}>
-                                                {content}
-                                            </a>
-                                        ) : (
-                                            <Link key={item.key} href={item.href}>
-                                                {content}
-                                            </Link>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                                    return (
+                                        <button
+                                            key={item.key}
+                                            type="button"
+                                            ref={(element) => {
+                                                navRefs.current[navIndex] = element;
+                                            }}
+                                            tabIndex={0}
+                                            className="dp-nav-link"
+                                            data-active={activeKey === item.key || focusedNavIndex === navIndex}
+                                            onFocus={() => setFocusedNavIndex(navIndex)}
+                                            onClick={() => router.visit(item.href)}
+                                        >
+                                            <span>{item.label}</span>
+                                            {item.shortcut ? <span className="dp-kbd">{item.shortcut}</span> : null}
+                                        </button>
+                                    );
+                                })}
+                            </section>
                         ))}
-                    </div>
 
-                    <div className="dp-sidebar-footer">
-                        {!sidebarCollapsed ? (
-                            <Typography.Text style={{ color: '#94a3b8', fontSize: 11 }}>
-                                {fiscalLabel} | {page.props.auth.user?.name ?? 'Admin'}
-                            </Typography.Text>
-                        ) : null}
+                        <div className="dp-sidebar-footer">
+                            <div>{fiscalLabel}</div>
+                            <div>{page.props.auth.user?.name ?? 'Admin'}</div>
+                            <div>{(page.props.auth.user?.role ?? 'admin').replace('_', ' ')}</div>
+                        </div>
                     </div>
-                </div>
-            </Sider>
+                </Sider>
+            ) : null}
 
             <Layout>
                 <Header className="dp-topbar">
-                    <div className="dp-topbar-row">
-                        <div className="dp-topbar-left">
-                            <Button size="small" onClick={() => setSidebarCollapsed((current) => !current)}>
-                                {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                            </Button>
-                            <Space size={6} wrap>
-                                <Button size="small" type="primary" onClick={() => router.visit(paths.invoices.create)}>
-                                    Invoice <span className="dp-kbd">{shortcuts.newInvoice}</span>
-                                </Button>
-                                <Button size="small" onClick={() => router.visit(paths.payments.createReceived)}>
-                                    Payment <span className="dp-kbd">{shortcuts.newPayment}</span>
-                                </Button>
-                                <Button size="small" onClick={() => router.visit(paths.reports.index)}>
-                                    Reports <span className="dp-kbd">{shortcuts.reports}</span>
-                                </Button>
-                            </Space>
-                        </div>
-
-                        <div className="dp-topbar-search">
-                            <Input
-                                size="small"
-                                data-global-search="true"
-                                value={invoiceSearch}
-                                onChange={(event) => setInvoiceSearch(event.target.value)}
-                                onPressEnter={submitInvoiceSearch}
-                                placeholder={`Search invoice (${shortcuts.searchInvoice})`}
-                            />
-                        </div>
+                    <div className="dp-topbar-left">
+                        <span className="dp-topbar-title" data-testid="app-shell-title">
+                            DESKERP
+                        </span>
+                        <span className="dp-chip">{fiscalLabel}</span>
+                        <span>{page.props.auth.user?.name ?? 'Admin'}</span>
+                        <span style={{ color: '#6b7280' }}>{title.toUpperCase()}</span>
+                        {subtitle ? <span style={{ color: '#8b93a8' }}>{subtitle}</span> : null}
                     </div>
 
-                    <div className="dp-topbar-row">
-                        <div>
-                            <div data-testid="app-shell-title">
-                                <Typography.Title level={4} style={{ margin: 0 }}>
-                                    {title}
-                                </Typography.Title>
-                            </div>
-                            {subtitle ? <Typography.Text type="secondary">{subtitle}</Typography.Text> : null}
-                        </div>
-                        {extra ? <Space wrap size={[6, 6]}>{extra}</Space> : null}
+                    <div className="dp-topbar-right">
+                        <Input
+                            size="small"
+                            style={{ width: 220 }}
+                            data-global-search="true"
+                            value={invoiceSearch}
+                            onChange={(event) => setInvoiceSearch(event.target.value)}
+                            onPressEnter={submitInvoiceSearch}
+                            placeholder={`Search Invoice ${shortcuts.searchInvoice}`}
+                        />
+                        {!isViewOnly ? (
+                            <>
+                                <Button size="small" type="primary" onClick={() => router.visit(paths.invoices.create)}>
+                                    Invoice {shortcuts.newInvoice}
+                                </Button>
+                                <Button size="small" onClick={() => router.visit(paths.payments.createReceived)}>
+                                    Payment {shortcuts.newPayment}
+                                </Button>
+                            </>
+                        ) : null}
+                        <Button size="small" onClick={() => router.visit(paths.reports.index)}>
+                            Reports {shortcuts.reports}
+                        </Button>
                     </div>
                 </Header>
 
                 <Content className="dp-content">
-                    {page.props.flash.success ? (
-                        <div className="dp-inline-message dp-inline-message-success">{page.props.flash.success}</div>
-                    ) : null}
-                    {page.props.flash.error ? (
-                        <div className="dp-inline-message dp-inline-message-error">{page.props.flash.error}</div>
-                    ) : null}
+                    {page.props.flash.success ? <div className="dp-inline-message dp-inline-message-success">{page.props.flash.success}</div> : null}
+                    {page.props.flash.error ? <div className="dp-inline-message dp-inline-message-error">{page.props.flash.error}</div> : null}
                     {children}
+                    {extra ? <div style={{ marginTop: 8 }}>{extra}</div> : null}
                 </Content>
 
                 <div className="dp-status-bar">
@@ -318,9 +328,13 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
                     <span>|</span>
                     <span>{page.props.auth.user?.name ?? 'Admin'}</span>
                     <span>|</span>
-                    <span>{currentMode}</span>
+                    <span>Mode: {currentMode}</span>
                     <span>|</span>
-                    <span>{shortcuts.toggleSidebar} Sidebar</span>
+                    <span>Date: {todayDate}</span>
+                    <span>|</span>
+                    <span>{shortcuts.save}: Save</span>
+                    <span>|</span>
+                    <span>Esc: Back</span>
                 </div>
             </Layout>
         </Layout>

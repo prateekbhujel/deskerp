@@ -3,7 +3,7 @@ import { formatDisplayDate, formatMoney, formatQuantity } from '@/lib/format';
 import { paths } from '@/lib/paths';
 import { SharedProps } from '@/types/shared';
 import { Link, usePage } from '@inertiajs/react';
-import { Button, Card, Descriptions, Space, Table, Tag } from 'antd';
+import { Button, Table } from 'antd';
 
 interface InvoiceShowProps {
     invoice: {
@@ -51,57 +51,74 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
     const useBsDates = page.props.settings.displayBsDates;
 
     return (
-        <AppShell
-            title={invoice.invoice_number}
-            subtitle="Invoice details, payment history, and print/PDF actions."
-            activeKey="invoices"
-            extra={
-                <Space wrap>
-                    <Link href={paths.invoices.edit(invoice.id)}>
-                        <Button>Edit</Button>
-                    </Link>
-                    <a href={paths.invoices.print(invoice.id)} target="_blank" rel="noreferrer">
-                        <Button>Print</Button>
-                    </a>
-                    <a href={paths.invoices.pdf(invoice.id)} target="_blank" rel="noreferrer">
-                        <Button type="primary">PDF</Button>
-                    </a>
-                </Space>
-            }
-        >
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Card className="dp-dense-card">
-                    <Descriptions column={{ xs: 1, md: 2, xl: 3 }} bordered>
-                        <Descriptions.Item label="Customer">{invoice.customer_name}</Descriptions.Item>
-                        <Descriptions.Item label="Issue Date">{formatDisplayDate(invoice.issue_date, useBsDates)}</Descriptions.Item>
-                        <Descriptions.Item label="Due Date">{formatDisplayDate(invoice.due_date, useBsDates)}</Descriptions.Item>
-                        <Descriptions.Item label="Status">
-                            <Space wrap>
-                                <Tag color={invoice.status === 'final' ? 'blue' : 'default'}>{invoice.status}</Tag>
-                                <Tag
-                                    data-testid="invoice-payment-status"
-                                    color={invoice.payment_status === 'paid' ? 'green' : invoice.payment_status === 'partial' ? 'orange' : 'red'}
-                                >
-                                    {invoice.payment_status}
-                                </Tag>
-                            </Space>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Reference">{invoice.reference_number || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="Created By">{invoice.created_by || '-'}</Descriptions.Item>
-                        <Descriptions.Item label="Billing Address" span={2}>
-                            {invoice.billing_address || '-'}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Tax Number">{invoice.tax_number || '-'}</Descriptions.Item>
-                    </Descriptions>
-                </Card>
+        <AppShell title={invoice.invoice_number} subtitle="Sales Voucher Details" activeKey="invoices" mode={invoice.status === 'final' ? 'Posted' : 'Draft'}>
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Header</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Customer</label>
+                            <div>{invoice.customer_name}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Issue Date</label>
+                            <div>{formatDisplayDate(invoice.issue_date, useBsDates)}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Due Date</label>
+                            <div>{formatDisplayDate(invoice.due_date, useBsDates)}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Status</label>
+                            <div data-testid="invoice-payment-status">
+                                {invoice.status.toUpperCase()} / {invoice.payment_status.toUpperCase()}
+                            </div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Reference</label>
+                            <div>{invoice.reference_number || '-'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-6">
+                            <label className="dp-field-label">Billing Address</label>
+                            <div>{invoice.billing_address || '-'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Tax Number</label>
+                            <div>{invoice.tax_number || '-'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Created By</label>
+                            <div>{invoice.created_by || '-'}</div>
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Actions</label>
+                            <div>
+                                <Link href={paths.invoices.edit(invoice.id)}>
+                                    <Button>Edit</Button>
+                                </Link>{' '}
+                                <a href={paths.invoices.print(invoice.id)} target="_blank" rel="noreferrer">
+                                    <Button>Print</Button>
+                                </a>{' '}
+                                <a href={paths.invoices.pdf(invoice.id)} target="_blank" rel="noreferrer">
+                                    <Button type="primary">PDF</Button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-                <Card title="Invoice Lines" className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Voucher Lines</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         pagination={false}
                         dataSource={invoice.lines}
-                        locale={{ emptyText: 'No line items found for this invoice.' }}
+                        locale={{ emptyText: 'No line items found.' }}
                         columns={[
                             { title: 'Description', dataIndex: 'description' },
                             { title: 'Unit', dataIndex: 'unit_name' },
@@ -112,54 +129,49 @@ export default function InvoiceShow({ invoice }: InvoiceShowProps) {
                             { title: 'Total', align: 'right', render: (_, record) => formatMoney(record.total) },
                         ]}
                     />
-                </Card>
+                </section>
 
-                <Card title="Payments" className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Payments</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         pagination={false}
                         dataSource={invoice.payments}
-                        locale={{ emptyText: 'No linked payments yet. Record a receipt from Payments.' }}
+                        locale={{ emptyText: 'No linked payments yet.' }}
                         columns={[
-                            {
-                                title: 'Number',
-                                render: (_, record) => <Link href={paths.payments.show(record.id)}>{record.payment_number}</Link>,
-                            },
-                            {
-                                title: 'Date',
-                                render: (_, record) => formatDisplayDate(record.payment_date, useBsDates),
-                            },
-                            {
-                                title: 'Method',
-                                dataIndex: 'method',
-                            },
-                            {
-                                title: 'Amount',
-                                align: 'right',
-                                render: (_, record) => formatMoney(record.amount),
-                            },
+                            { title: 'Voucher', render: (_, record) => <Link href={paths.payments.show(record.id)}>{record.payment_number}</Link> },
+                            { title: 'Date', render: (_, record) => formatDisplayDate(record.payment_date, useBsDates) },
+                            { title: 'Method', dataIndex: 'method' },
+                            { title: 'Amount', align: 'right', render: (_, record) => formatMoney(record.amount) },
                         ]}
                     />
-                </Card>
+                </section>
 
-                <Card title="Totals" className="dp-dense-card">
-                    <Descriptions column={{ xs: 1, md: 2, xl: 3 }} bordered>
-                        <Descriptions.Item label="Subtotal">{formatMoney(invoice.subtotal)}</Descriptions.Item>
-                        <Descriptions.Item label="Discount">{formatMoney(invoice.discount_total)}</Descriptions.Item>
-                        <Descriptions.Item label="Tax">{formatMoney(invoice.tax_total)}</Descriptions.Item>
-                        <Descriptions.Item label="Total">
-                            <span data-testid="invoice-total">{formatMoney(invoice.total)}</span>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Paid">
-                            <span data-testid="invoice-paid-total">{formatMoney(invoice.paid_total)}</span>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Balance Due">
-                            <span data-testid="invoice-balance-due">{formatMoney(invoice.balance_due)}</span>
-                        </Descriptions.Item>
-                    </Descriptions>
-                </Card>
-            </Space>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Totals</h3>
+                    </div>
+                    <div className="dp-summary-grid">
+                        <span>Subtotal</span>
+                        <strong>{formatMoney(invoice.subtotal)}</strong>
+                        <span>Discount</span>
+                        <strong>{formatMoney(invoice.discount_total)}</strong>
+                        <span>Tax</span>
+                        <strong>{formatMoney(invoice.tax_total)}</strong>
+                        <span>Total</span>
+                        <strong data-testid="invoice-total">{formatMoney(invoice.total)}</strong>
+                        <span>Paid</span>
+                        <strong data-testid="invoice-paid-total">{formatMoney(invoice.paid_total)}</strong>
+                        <span className="dp-summary-total">Balance</span>
+                        <strong className="dp-summary-total" data-testid="invoice-balance-due">
+                            {formatMoney(invoice.balance_due)}
+                        </strong>
+                    </div>
+                </section>
+            </div>
         </AppShell>
     );
 }

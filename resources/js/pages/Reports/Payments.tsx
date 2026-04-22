@@ -4,7 +4,7 @@ import { formatDisplayDate, formatMoney } from '@/lib/format';
 import { paths, withQuery } from '@/lib/paths';
 import { PaginatedResponse, SharedProps } from '@/types/shared';
 import { router, usePage } from '@inertiajs/react';
-import { Button, Card, Select, Space, Statistic, Table } from 'antd';
+import { Button, Select, Table } from 'antd';
 import { useState } from 'react';
 
 interface PaymentsReportProps {
@@ -51,58 +51,80 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
     };
 
     return (
-        <AppShell title="Payment Report" subtitle="Receipts and payments with CSV/XLSX export." activeKey="reports">
-            <Space direction="vertical" size="large" style={{ display: 'flex' }}>
-                <Space wrap size="large">
-                    <Statistic title="Received" value={formatMoney(summary.received)} />
-                    <Statistic title="Made" value={formatMoney(summary.made)} />
-                </Space>
-
-                <Card
-                    className="dp-dense-card"
-                    extra={
-                        <Space wrap>
-                            <a href={withQuery(paths.reports.payments, { ...localFilters, export: 'csv' })}>
-                                <Button>CSV</Button>
-                            </a>
-                            <a href={withQuery(paths.reports.payments, { ...localFilters, export: 'xlsx' })}>
-                                <Button type="primary">XLSX</Button>
-                            </a>
-                        </Space>
-                    }
-                >
-                    <div className="grid gap-4 lg:grid-cols-4">
-                        <Select
-                            allowClear
-                            placeholder="Direction"
-                            value={localFilters.direction || undefined}
-                            onChange={(value) => setLocalFilters((current) => ({ ...current, direction: value ?? '' }))}
-                            options={[
-                                { value: 'received', label: 'Received' },
-                                { value: 'made', label: 'Made' },
-                            ]}
-                        />
-                        <Select
-                            allowClear
-                            placeholder="Method"
-                            value={localFilters.method || undefined}
-                            onChange={(value) => setLocalFilters((current) => ({ ...current, method: value ?? '' }))}
-                            options={['cash', 'bank', 'card', 'cheque', 'online'].map((method) => ({ value: method, label: method }))}
-                        />
-                        <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} placeholder="Date from" />
-                        <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} placeholder="Date to" />
+        <AppShell title="Payment Report" subtitle="Receipt / Payment Register" activeKey="reports">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Summary</h3>
                     </div>
-                    <Button style={{ marginTop: 16 }} type="primary" onClick={() => applyFilters()}>
-                        Apply
-                    </Button>
-                </Card>
+                    <div className="dp-summary-grid">
+                        <span>Received</span>
+                        <strong>{formatMoney(summary.received)}</strong>
+                        <span className="dp-summary-total">Made</span>
+                        <strong className="dp-summary-total">{formatMoney(summary.made)}</strong>
+                    </div>
+                </section>
 
-                <Card className="dp-dense-card">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Filters</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Direction</label>
+                            <Select
+                                allowClear
+                                value={localFilters.direction || undefined}
+                                onChange={(value) => setLocalFilters((current) => ({ ...current, direction: value ?? '' }))}
+                                options={[
+                                    { value: 'received', label: 'RECEIVED' },
+                                    { value: 'made', label: 'MADE' },
+                                ]}
+                            />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">Method</label>
+                            <Select
+                                allowClear
+                                value={localFilters.method || undefined}
+                                onChange={(value) => setLocalFilters((current) => ({ ...current, method: value ?? '' }))}
+                                options={['cash', 'bank', 'card', 'cheque', 'online'].map((method) => ({ value: method, label: method.toUpperCase() }))}
+                            />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">From</label>
+                            <BsDateInput value={localFilters.date_from} onChange={(value) => setLocalFilters((current) => ({ ...current, date_from: value }))} displayBsDates={useBsDates} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-2">
+                            <label className="dp-field-label">To</label>
+                            <BsDateInput value={localFilters.date_to} onChange={(value) => setLocalFilters((current) => ({ ...current, date_to: value }))} displayBsDates={useBsDates} />
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-4">
+                            <label className="dp-field-label">Actions</label>
+                            <div>
+                                <Button type="primary" onClick={() => applyFilters()}>
+                                    Show
+                                </Button>{' '}
+                                <a href={withQuery(paths.reports.payments, { ...localFilters, export: 'csv' })}>
+                                    <Button>Export CSV</Button>
+                                </a>{' '}
+                                <a href={withQuery(paths.reports.payments, { ...localFilters, export: 'xlsx' })}>
+                                    <Button>Export XLSX</Button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Rows</h3>
+                    </div>
                     <Table
                         rowKey="id"
                         size="small"
                         dataSource={payments.data}
-                        locale={{ emptyText: 'No payment data found for selected filters.' }}
+                        locale={{ emptyText: 'No payment rows for current filters.' }}
                         pagination={{
                             current: payments.meta.currentPage,
                             total: payments.meta.total,
@@ -110,12 +132,9 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
                             onChange: (pageNumber) => applyFilters(pageNumber),
                         }}
                         columns={[
-                            {
-                                title: 'Date',
-                                render: (_, record) => formatDisplayDate(record.payment_date, useBsDates),
-                            },
+                            { title: 'Date', render: (_, record) => formatDisplayDate(record.payment_date, useBsDates) },
                             { title: 'Number', dataIndex: 'payment_number' },
-                            { title: 'Direction', dataIndex: 'direction' },
+                            { title: 'Type', dataIndex: 'direction' },
                             { title: 'Party', dataIndex: 'party_name', render: (value) => value || '-' },
                             { title: 'Invoice', dataIndex: 'invoice_number', render: (value) => value || '-' },
                             { title: 'Method', dataIndex: 'method' },
@@ -123,8 +142,8 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
                             { title: 'Amount', align: 'right', render: (_, record) => formatMoney(record.amount) },
                         ]}
                     />
-                </Card>
-            </Space>
+                </section>
+            </div>
         </AppShell>
     );
 }

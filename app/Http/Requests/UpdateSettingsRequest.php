@@ -25,6 +25,7 @@ class UpdateSettingsRequest extends FormRequest
             'invoice_prefix' => ['nullable', 'string', 'max:20'],
             'payment_received_prefix' => ['nullable', 'string', 'max:20'],
             'payment_made_prefix' => ['nullable', 'string', 'max:20'],
+            'currency' => ['nullable', 'string', 'max:12'],
         ];
     }
 }

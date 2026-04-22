@@ -1,8 +1,7 @@
 import { AppShell } from '@/components/layout/AppShell';
 import { paths } from '@/lib/paths';
 import { useForm } from '@inertiajs/react';
-import { DownloadOutlined, ExclamationCircleOutlined, UploadOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Empty, Input, List, Space, Typography, Upload } from 'antd';
+import { Button, Input, Table } from 'antd';
 
 interface BackupRecord {
     name: string;
@@ -46,108 +45,69 @@ export default function BackupIndex({ backups }: BackupIndexProps) {
     };
 
     return (
-        <AppShell
-            title="Backup / Restore"
-            subtitle="Download local backup files and restore when needed."
-            activeKey="backups"
-            extra={
-                <a href={paths.backupsDownload}>
-                    <Button type="primary" icon={<DownloadOutlined />}>
-                        Download Backup
-                    </Button>
-                </a>
-            }
-        >
-            <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-                    <Card title="Create Backup" className="dp-dense-card">
-                        <Space direction="vertical" size={12} style={{ display: 'flex' }}>
-                            <Typography.Text type="secondary">Create a timestamped SQLite backup of current DeskERP data.</Typography.Text>
-                            <a href={paths.backupsDownload}>
-                                <Button type="primary" icon={<DownloadOutlined />}>
-                                    Download Backup
-                                </Button>
-                            </a>
-                        </Space>
-                    </Card>
+        <AppShell title="Backup / Restore" subtitle="SQLite Local Backup" activeKey="backups">
+            <div className="dp-form-page">
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Create Backup</h3>
+                    </div>
+                    <div className="dp-section-body">
+                        <a href={paths.backupsDownload}>
+                            <Button type="primary">Download Backup</Button>
+                        </a>
+                    </div>
+                </section>
 
-                    <Card title="Restore Backup" className="dp-dense-card">
-                        <Space direction="vertical" size={12} style={{ display: 'flex' }}>
-                            <Alert
-                                showIcon
-                                type="warning"
-                                icon={<ExclamationCircleOutlined />}
-                                message="Restore will replace the current database."
-                                description="Make sure users have stopped data entry before restoring."
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Restore Backup</h3>
+                    </div>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-4">
+                            <label className="dp-field-label">Backup File (.sqlite/.db)</label>
+                            <Input
+                                type="file"
+                                onChange={(event) => {
+                                    const nextFile = event.target.files?.[0] ?? null;
+                                    setData('backup_file', nextFile);
+                                }}
                             />
-
-                            <div>
-                                <Typography.Text strong>SQLite Backup File</Typography.Text>
-                                <div style={{ marginTop: 8 }}>
-                                    <Upload
-                                        maxCount={1}
-                                        beforeUpload={() => false}
-                                        accept=".sqlite,.db,application/x-sqlite3,application/vnd.sqlite3,application/octet-stream"
-                                        onChange={({ fileList }) => {
-                                            const nextFile = fileList[0]?.originFileObj as File | undefined;
-                                            setData('backup_file', nextFile ?? null);
-                                        }}
-                                        onRemove={() => {
-                                            setData('backup_file', null);
-                                            return true;
-                                        }}
-                                    >
-                                        <Button icon={<UploadOutlined />}>Choose File</Button>
-                                    </Upload>
-                                </div>
-                                {errors.backup_file ? (
-                                    <Typography.Text type="danger" style={{ display: 'block', marginTop: 6 }}>
-                                        {errors.backup_file}
-                                    </Typography.Text>
-                                ) : null}
+                            {errors.backup_file ? <span className="dp-error-text">{errors.backup_file}</span> : null}
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-3">
+                            <label className="dp-field-label">Type RESTORE</label>
+                            <Input value={data.confirmation_text} onChange={(event) => setData('confirmation_text', event.target.value)} />
+                            {errors.confirmation_text ? <span className="dp-error-text">{errors.confirmation_text}</span> : null}
+                        </div>
+                        <div className="dp-field col-span-12 xl:col-span-5">
+                            <label className="dp-field-label">Warning</label>
+                            <div>Restore replaces current database. Stop data entry before proceeding.</div>
+                            <div style={{ marginTop: 8 }}>
+                                <Button danger type="primary" onClick={submitRestore} loading={processing} disabled={!data.backup_file}>
+                                    Restore Backup
+                                </Button>
                             </div>
+                        </div>
+                    </div>
+                </section>
 
-                            <div>
-                                <Typography.Text strong>Confirmation (Type RESTORE)</Typography.Text>
-                                <Input
-                                    value={data.confirmation_text}
-                                    onChange={(event) => setData('confirmation_text', event.target.value)}
-                                    style={{ marginTop: 8 }}
-                                    placeholder="RESTORE"
-                                />
-                                {errors.confirmation_text ? (
-                                    <Typography.Text type="danger" style={{ display: 'block', marginTop: 6 }}>
-                                        {errors.confirmation_text}
-                                    </Typography.Text>
-                                ) : null}
-                            </div>
-
-                            <Button danger type="primary" onClick={submitRestore} loading={processing} disabled={!data.backup_file}>
-                                Restore Backup
-                            </Button>
-                        </Space>
-                    </Card>
-                </Space>
-
-                <Card title="Recent Backups" className="dp-dense-card">
-                    {backups.length ? (
-                        <List
-                            dataSource={backups}
-                            renderItem={(backup) => (
-                                <List.Item>
-                                    <Space direction="vertical" size={2} style={{ display: 'flex', width: '100%' }}>
-                                        <Typography.Text strong>{backup.name}</Typography.Text>
-                                        <Typography.Text type="secondary">
-                                            {formatFileSize(Number(backup.size))} / {backup.modified_at}
-                                        </Typography.Text>
-                                    </Space>
-                                </List.Item>
-                            )}
-                        />
-                    ) : (
-                        <Empty description="No backups yet. Click Download Backup to create the first file." />
-                    )}
-                </Card>
+                <section className="dp-section-block">
+                    <div className="dp-section-head">
+                        <h3 className="dp-section-title">Recent Backups</h3>
+                    </div>
+                    <Table
+                        rowKey="name"
+                        size="small"
+                        pagination={false}
+                        dataSource={backups}
+                        locale={{ emptyText: 'No backups available.' }}
+                        columns={[
+                            { title: 'File', dataIndex: 'name' },
+                            { title: 'Size', render: (_, record) => formatFileSize(Number(record.size)) },
+                            { title: 'Modified', dataIndex: 'modified_at' },
+                        ]}
+                    />
+                </section>
             </div>
         </AppShell>
     );
