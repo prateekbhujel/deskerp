@@ -3,8 +3,8 @@ import { expect, Page, test } from '@playwright/test';
 async function ensureCompanySelected(page: Page) {
     await page.goto('/company');
 
-    if (await page.getByRole('button', { name: 'Use This Company' }).isVisible().catch(() => false)) {
-        await page.getByRole('button', { name: 'Use This Company' }).click();
+    if (await page.getByRole('button', { name: /Continue With This Company|Use This Company/i }).isVisible().catch(() => false)) {
+        await page.getByRole('button', { name: /Continue With This Company|Use This Company/i }).click();
         return;
     }
 
@@ -16,7 +16,7 @@ async function ensureCompanySelected(page: Page) {
     await page.getByLabel('Admin Username').fill('admin');
     await page.getByLabel('Admin Password').fill('deskerp123');
     await page.getByLabel('Confirm Password').fill('deskerp123');
-    await page.getByRole('button', { name: 'Create Company' }).click();
+    await page.getByRole('button', { name: /Create Company|Save New Company Profile/i }).click();
 }
 
 test('smoke checks invoicing, payments, inventory, reports, and exports', async ({ page }) => {
@@ -38,6 +38,7 @@ test('smoke checks invoicing, payments, inventory, reports, and exports', async 
     await expect(page.getByTestId('app-shell-title')).toContainText('DESKERP');
 
     await page.goto('/settings');
+    await page.getByRole('tab', { name: /Fiscal/i }).click();
     await page.getByTestId('settings-fiscal-year-label').fill('2082/83');
     await page.getByTestId('settings-save').click();
 

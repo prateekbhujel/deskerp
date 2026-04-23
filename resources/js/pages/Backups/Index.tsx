@@ -45,13 +45,14 @@ export default function BackupIndex({ backups }: BackupIndexProps) {
     };
 
     return (
-        <AppShell title="Backup / Restore" subtitle="SQLite Local Backup" activeKey="backups">
+        <AppShell title="Backup / Restore" subtitle="SQLite export and restore" activeKey="backups">
             <div className="dp-form-page">
                 <section className="dp-section-block">
                     <div className="dp-section-head">
                         <h3 className="dp-section-title">Create Backup</h3>
                     </div>
                     <div className="dp-section-body">
+                        <div className="dp-inline-meta" style={{ marginBottom: 10 }}>Download a timestamped copy of the active SQLite database file.</div>
                         <a href={paths.backupsDownload}>
                             <Button type="primary">Download Backup</Button>
                         </a>
@@ -81,7 +82,7 @@ export default function BackupIndex({ backups }: BackupIndexProps) {
                         </div>
                         <div className="dp-field col-span-12 xl:col-span-5">
                             <label className="dp-field-label">Warning</label>
-                            <div>Restore replaces current database. Stop data entry before proceeding.</div>
+                            <div>Restore replaces the current database. Stop data entry before proceeding.</div>
                             <div style={{ marginTop: 8 }}>
                                 <Button danger type="primary" onClick={submitRestore} loading={processing} disabled={!data.backup_file}>
                                     Restore Backup

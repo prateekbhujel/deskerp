@@ -1,11 +1,10 @@
 import { RemoteLookupSelect } from '@/components/forms/RemoteLookupSelect';
 import { AppShell } from '@/components/layout/AppShell';
-import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 import { paths } from '@/lib/paths';
 import { LookupOption } from '@/types/shared';
 import { router } from '@inertiajs/react';
-import { Button } from 'antd';
-import { useState } from 'react';
+import { Button, Table } from 'antd';
+import { useMemo, useState } from 'react';
 
 interface CustomerLookupRecord {
     id: number;
@@ -20,41 +19,67 @@ interface SupplierLookupRecord {
 export default function ReportsIndex() {
     const [customerOption, setCustomerOption] = useState<LookupOption<CustomerLookupRecord> | null>(null);
     const [supplierOption, setSupplierOption] = useState<LookupOption<SupplierLookupRecord> | null>(null);
-    const { shortcuts } = usePlatformShortcuts();
+
+    const reports = useMemo(
+        () => [
+            {
+                key: 'sales',
+                name: 'Sales Register',
+                scope: 'Finalized sales invoices',
+                path: paths.reports.sales,
+            },
+            {
+                key: 'payments',
+                name: 'Payment Report',
+                scope: 'Payment received and payment made',
+                path: paths.reports.payments,
+            },
+            {
+                key: 'inventory',
+                name: 'Stock Summary',
+                scope: 'Current stock, reorder, and valuation',
+                path: paths.reports.inventory,
+            },
+        ],
+        [],
+    );
 
     return (
-        <AppShell title="Reports" subtitle={`Report center | ${shortcuts.reports} open reports`} activeKey="reports" mode="Posted">
+        <AppShell title="Report Center" subtitle="Operational reports and ledger lookup" activeKey="reports" mode="Posted">
             <div className="dp-form-page">
                 <section className="dp-section-block">
                     <div className="dp-section-head">
-                        <h3 className="dp-section-title">Operational Reports</h3>
+                        <h3 className="dp-section-title">Available Reports</h3>
                     </div>
-                    <div className="dp-section-body">
-                        <div className="grid gap-2 md:grid-cols-3">
-                            <button className="dp-report-link" onClick={() => router.visit(paths.reports.sales)} type="button">
-                                <span>Sales Report</span>
-                                <span>CSV/XLSX</span>
-                            </button>
-                            <button className="dp-report-link" onClick={() => router.visit(paths.reports.payments)} type="button">
-                                <span>Payment Report</span>
-                                <span>CSV/XLSX</span>
-                            </button>
-                            <button className="dp-report-link" onClick={() => router.visit(paths.reports.inventory)} type="button">
-                                <span>Inventory Report</span>
-                                <span>CSV/XLSX</span>
-                            </button>
-                        </div>
-                    </div>
+                    <Table
+                        rowKey="key"
+                        size="small"
+                        pagination={false}
+                        dataSource={reports}
+                        columns={[
+                            { title: 'Report', dataIndex: 'name' },
+                            { title: 'Scope', dataIndex: 'scope' },
+                            {
+                                title: 'Action',
+                                width: 120,
+                                render: (_, record) => (
+                                    <Button type="primary" onClick={() => router.visit(record.path)}>
+                                        Open
+                                    </Button>
+                                ),
+                            },
+                        ]}
+                    />
                 </section>
 
                 <section className="dp-section-block">
                     <div className="dp-section-head">
                         <h3 className="dp-section-title">Ledger Lookup</h3>
                     </div>
-                    <div className="dp-section-body">
-                        <div className="dp-form-grid">
-                            <div className="dp-field col-span-12 xl:col-span-6">
-                                <label className="dp-field-label">Customer Ledger</label>
+                    <div className="dp-form-grid">
+                        <div className="dp-field col-span-12 xl:col-span-6">
+                            <label className="dp-field-label">Customer Ledger</label>
+                            <div className="dp-lookup-row">
                                 <RemoteLookupSelect<CustomerLookupRecord>
                                     endpoint={paths.lookups.customers}
                                     value={customerOption}
@@ -65,13 +90,15 @@ export default function ReportsIndex() {
                                         record,
                                     })}
                                 />
-                                <Button style={{ marginTop: 6 }} type="primary" disabled={!customerOption} onClick={() => customerOption && router.visit(paths.reports.customerLedger(customerOption.record.id))}>
-                                    Open Customer Ledger
+                                <Button type="primary" disabled={!customerOption} onClick={() => customerOption && router.visit(paths.reports.customerLedger(customerOption.record.id))}>
+                                    Open
                                 </Button>
                             </div>
+                        </div>
 
-                            <div className="dp-field col-span-12 xl:col-span-6">
-                                <label className="dp-field-label">Supplier Ledger</label>
+                        <div className="dp-field col-span-12 xl:col-span-6">
+                            <label className="dp-field-label">Supplier Ledger</label>
+                            <div className="dp-lookup-row">
                                 <RemoteLookupSelect<SupplierLookupRecord>
                                     endpoint={paths.lookups.suppliers}
                                     value={supplierOption}
@@ -82,20 +109,11 @@ export default function ReportsIndex() {
                                         record,
                                     })}
                                 />
-                                <Button style={{ marginTop: 6 }} type="primary" disabled={!supplierOption} onClick={() => supplierOption && router.visit(paths.reports.supplierLedger(supplierOption.record.id))}>
-                                    Open Supplier Ledger
+                                <Button type="primary" disabled={!supplierOption} onClick={() => supplierOption && router.visit(paths.reports.supplierLedger(supplierOption.record.id))}>
+                                    Open
                                 </Button>
                             </div>
                         </div>
-                    </div>
-                </section>
-
-                <section className="dp-section-block">
-                    <div className="dp-section-head">
-                        <h3 className="dp-section-title">Export Modes</h3>
-                    </div>
-                    <div className="dp-section-body">
-                        <span className="dp-kbd">CSV</span> <span className="dp-kbd">XLSX</span> <span className="dp-kbd">Print</span>
                     </div>
                 </section>
             </div>

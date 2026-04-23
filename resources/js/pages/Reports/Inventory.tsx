@@ -16,6 +16,7 @@ interface InventoryReportProps {
         current_stock: string;
         reorder_level: string;
         base_price: string;
+        stock_value: string;
     }>;
     summary: {
         tracked_items: number;
@@ -84,6 +85,7 @@ export default function InventoryReport({ items, summary, categories, filters }:
                                 <Button type="primary" onClick={() => applyFilters()}>
                                     Show
                                 </Button>{' '}
+                                <Button onClick={() => window.print()}>Print</Button>{' '}
                                 <a href={withQuery(paths.reports.inventory, { ...localFilters, export: 'csv' })}>
                                     <Button>Export CSV</Button>
                                 </a>{' '}
@@ -118,7 +120,7 @@ export default function InventoryReport({ items, summary, categories, filters }:
                             { title: 'Current', align: 'right', render: (_, record) => formatQuantity(record.current_stock) },
                             { title: 'Reorder', align: 'right', render: (_, record) => formatQuantity(record.reorder_level) },
                             { title: 'Base', align: 'right', render: (_, record) => formatMoney(record.base_price) },
-                            { title: 'Value', align: 'right', render: (_, record) => formatMoney(Number(record.current_stock) * Number(record.base_price)) },
+                            { title: 'Value', align: 'right', render: (_, record) => formatMoney(record.stock_value) },
                         ]}
                     />
                 </section>

@@ -27,9 +27,9 @@ interface SalesReportProps {
         balance_due: string;
     }>;
     summary: {
-        total_sales: number;
-        total_tax: number;
-        total_balance: number;
+        total_sales: string;
+        total_tax: string;
+        total_balance: string;
     };
     filters: {
         q: string;
@@ -123,6 +123,7 @@ export default function SalesReport({ invoices, summary, filters, selected_custo
                                 <Button type="primary" onClick={() => applyFilters()}>
                                     Show
                                 </Button>{' '}
+                                <Button onClick={() => window.print()}>Print</Button>{' '}
                                 <a href={withQuery(paths.reports.sales, { ...localFilters, export: 'csv' })}>
                                     <Button>Export CSV</Button>
                                 </a>{' '}

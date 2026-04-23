@@ -15,6 +15,7 @@ use App\Models\Payment;
 use App\Models\Supplier;
 use App\Services\SettingsService;
 use App\Support\CsvExport;
+use App\Support\Decimal;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -99,9 +100,9 @@ class ReportController extends Controller
                 'meta' => $this->paginationMeta($invoices),
             ],
             'summary' => [
-                'total_sales' => $summaryQuery->sum('total'),
-                'total_tax' => (clone $summaryQuery)->sum('tax_total'),
-                'total_balance' => (clone $summaryQuery)->sum('balance_due'),
+                'total_sales' => Decimal::normalize($summaryQuery->sum('total')),
+                'total_tax' => Decimal::normalize((clone $summaryQuery)->sum('tax_total')),
+                'total_balance' => Decimal::normalize((clone $summaryQuery)->sum('balance_due')),
             ],
             'filters' => [
                 'q' => $request->string('q')->toString(),
@@ -179,8 +180,8 @@ class ReportController extends Controller
                 'meta' => $this->paginationMeta($payments),
             ],
             'summary' => [
-                'received' => (clone $query)->where('direction', 'received')->sum('amount'),
-                'made' => (clone $query)->where('direction', 'made')->sum('amount'),
+                'received' => Decimal::normalize((clone $query)->where('direction', 'received')->sum('amount')),
+                'made' => Decimal::normalize((clone $query)->where('direction', 'made')->sum('amount')),
             ],
             'filters' => [
                 'direction' => $request->string('direction')->toString(),
@@ -216,7 +217,7 @@ class ReportController extends Controller
             $item->current_stock,
             $item->reorder_level,
             $item->base_price,
-            number_format((float) $item->current_stock * (float) $item->base_price, 2, '.', ''),
+            Decimal::multiply($item->current_stock, $item->base_price, 2),
         ]);
 
         if ($request->string('export')->toString() === 'csv') {
@@ -247,6 +248,7 @@ class ReportController extends Controller
                     'current_stock' => $item->current_stock,
                     'reorder_level' => $item->reorder_level,
                     'base_price' => $item->base_price,
+                    'stock_value' => Decimal::multiply($item->current_stock, $item->base_price, 2),
                 ]),
                 'meta' => $this->paginationMeta($items),
             ],
@@ -276,8 +278,8 @@ class ReportController extends Controller
                 'date' => null,
                 'type' => 'Opening Balance',
                 'reference' => 'OPEN',
-                'debit' => (float) $customer->opening_balance,
-                'credit' => 0.0,
+                'debit' => Decimal::normalize($customer->opening_balance),
+                'credit' => '0.00',
                 'notes' => 'Opening customer balance',
             ],
         ])->merge(
@@ -291,8 +293,8 @@ class ReportController extends Controller
                     'date' => $invoice->issue_date?->format('Y-m-d'),
                     'type' => 'Invoice',
                     'reference' => $invoice->invoice_number,
-                    'debit' => (float) $invoice->total,
-                    'credit' => 0.0,
+                    'debit' => Decimal::normalize($invoice->total),
+                    'credit' => '0.00',
                     'notes' => $invoice->reference_number,
                 ]),
         )->merge(
@@ -306,8 +308,8 @@ class ReportController extends Controller
                     'date' => $payment->payment_date?->format('Y-m-d'),
                     'type' => 'Payment Received',
                     'reference' => $payment->payment_number,
-                    'debit' => 0.0,
-                    'credit' => (float) $payment->amount,
+                    'debit' => '0.00',
+                    'credit' => Decimal::normalize($payment->amount),
                     'notes' => $payment->reference_number,
                 ]),
         );
@@ -374,8 +376,8 @@ class ReportController extends Controller
                 'date' => null,
                 'type' => 'Opening Balance',
                 'reference' => 'OPEN',
-                'debit' => (float) $supplier->opening_balance,
-                'credit' => 0.0,
+                'debit' => Decimal::normalize($supplier->opening_balance),
+                'credit' => '0.00',
                 'notes' => 'Opening supplier balance',
             ],
         ])->merge(
@@ -389,8 +391,8 @@ class ReportController extends Controller
                     'date' => $payment->payment_date?->format('Y-m-d'),
                     'type' => 'Payment Made',
                     'reference' => $payment->payment_number,
-                    'debit' => 0.0,
-                    'credit' => (float) $payment->amount,
+                    'debit' => '0.00',
+                    'credit' => Decimal::normalize($payment->amount),
                     'notes' => $payment->reference_number,
                 ]),
         );
@@ -450,7 +452,7 @@ class ReportController extends Controller
 
     private function runningLedger(Collection $entries): Collection
     {
-        $balance = 0.0;
+        $balance = '0.00';
 
         return $entries
             ->sortBy([
@@ -459,10 +461,13 @@ class ReportController extends Controller
             ])
             ->values()
             ->map(function (array $entry) use (&$balance): array {
-                $balance += $entry['debit'] - $entry['credit'];
-                $entry['balance'] = number_format($balance, 2, '.', '');
-                $entry['debit'] = number_format($entry['debit'], 2, '.', '');
-                $entry['credit'] = number_format($entry['credit'], 2, '.', '');
+                $entry['debit'] = Decimal::normalize($entry['debit']);
+                $entry['credit'] = Decimal::normalize($entry['credit']);
+                $balance = Decimal::subtract(
+                    Decimal::add([$balance, $entry['debit']]),
+                    $entry['credit'],
+                );
+                $entry['balance'] = $balance;
 
                 return $entry;
             });

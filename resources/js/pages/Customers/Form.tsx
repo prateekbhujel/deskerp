@@ -25,7 +25,7 @@ interface CustomersFormProps {
 }
 
 export default function CustomersForm({ mode, customer }: CustomersFormProps) {
-    const { isMac, shortcuts } = usePlatformShortcuts();
+    const { isMac } = usePlatformShortcuts();
     const { data, setData, post, put, processing, errors, transform } = useForm({
         code: customer.code ?? '',
         name: customer.name ?? '',
@@ -181,7 +181,7 @@ export default function CustomersForm({ mode, customer }: CustomersFormProps) {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Button type="primary" onClick={() => submit()} loading={processing}>
-                            Save {shortcuts.save}
+                            Save
                         </Button>
                         <Button onClick={() => router.visit(paths.customers.index)}>Cancel</Button>
                     </div>

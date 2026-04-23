@@ -8,7 +8,7 @@ import { paths } from '@/lib/paths';
 import { LookupOption, SharedProps, SimpleOption } from '@/types/shared';
 import { router, useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Button, Input, InputNumber, Select, Space } from 'antd';
+import { Button, Input, InputNumber, Modal, Select, Space } from 'antd';
 import { KeyboardEvent as ReactKeyboardEvent, useMemo, useState } from 'react';
 
 interface CustomerLookupRecord {
@@ -93,7 +93,7 @@ function isRowRemovable(line: InvoiceLineInput): boolean {
 export default function InvoiceForm({ mode, invoice, selected_customer, selected_line_items, support }: InvoiceFormPageProps) {
     const page = usePage<SharedProps>();
     const useBsDates = page.props.settings.displayBsDates;
-    const { isMac, shortcuts } = usePlatformShortcuts();
+    const { isMac } = usePlatformShortcuts();
 
     const [customerOption, setCustomerOption] = useState<LookupOption<CustomerLookupRecord> | null>(
         selected_customer
@@ -442,7 +442,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     <div className="dp-section-head">
                         <h3 className="dp-section-title">Party</h3>
                         <Space size={6}>
-                            <Button onClick={() => setShowQuickCustomer((current) => !current)}>Add Customer {shortcuts.addCustomer}</Button>
+                            <Button onClick={() => setShowQuickCustomer(true)}>Add Customer</Button>
                         </Space>
                     </div>
                     <div className="dp-section-body">
@@ -464,90 +464,6 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                             />
                             {errors.customer_id ? <span className="dp-error-text">{errors.customer_id}</span> : null}
                         </div>
-
-                        {showQuickCustomer ? (
-                            <div style={{ marginTop: 8, border: '1px solid #999', padding: 8 }}>
-                                <div className="dp-form-grid">
-                                    <div className="dp-field col-span-12 xl:col-span-3">
-                                        <label className="dp-field-label">Name</label>
-                                        <Input
-                                            data-testid="quick-customer-name"
-                                            value={quickCustomerData.name}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    name: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                        {quickCustomerErrors.name ? <span className="dp-error-text">{quickCustomerErrors.name}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Code</label>
-                                        <Input
-                                            data-testid="quick-customer-code"
-                                            value={quickCustomerData.code}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    code: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                        {quickCustomerErrors.code ? <span className="dp-error-text">{quickCustomerErrors.code}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Phone</label>
-                                        <Input
-                                            data-testid="quick-customer-phone"
-                                            value={quickCustomerData.phone}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    phone: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                        {quickCustomerErrors.phone ? <span className="dp-error-text">{quickCustomerErrors.phone}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Email</label>
-                                        <Input
-                                            data-testid="quick-customer-email"
-                                            value={quickCustomerData.email}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    email: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                        {quickCustomerErrors.email ? <span className="dp-error-text">{quickCustomerErrors.email}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-3">
-                                        <label className="dp-field-label">Address</label>
-                                        <Input
-                                            value={quickCustomerData.billing_address}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    billing_address: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                        {quickCustomerErrors.billing_address ? <span className="dp-error-text">{quickCustomerErrors.billing_address}</span> : null}
-                                    </div>
-                                </div>
-                                <div style={{ marginTop: 8 }}>
-                                    <Space size={6}>
-                                        <Button type="primary" onClick={saveQuickCustomer} loading={quickCustomerSaving}>
-                                            Save Customer
-                                        </Button>
-                                        <Button onClick={() => setShowQuickCustomer(false)}>Cancel</Button>
-                                    </Space>
-                                </div>
-                            </div>
-                        ) : null}
                     </div>
                 </section>
 
@@ -555,7 +471,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     <div className="dp-section-head">
                         <h3 className="dp-section-title">Voucher Lines</h3>
                         <Space size={6}>
-                            <Button onClick={() => addVoucherRow(true)}>Add Row {shortcuts.addLineRow}</Button>
+                            <Button onClick={() => addVoucherRow(true)}>Add Row</Button>
                             <Button
                                 onClick={() => {
                                     const target = data.lines.findIndex((line) => !line.item_id && !line.description);
@@ -565,7 +481,7 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                                     } else {
                                         setQuickItemTargetRow(target);
                                     }
-                                    setShowQuickItem((current) => !current);
+                                    setShowQuickItem(true);
                                 }}
                             >
                                 Add Item
@@ -710,81 +626,6 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                             </table>
                         </div>
                         {errors.lines ? <span className="dp-error-text">{errors.lines}</span> : null}
-
-                        {showQuickItem ? (
-                            <div style={{ marginTop: 8, border: '1px solid #999', padding: 8 }}>
-                                <div className="dp-form-grid">
-                                    <div className="dp-field col-span-12 xl:col-span-3">
-                                        <label className="dp-field-label">Item Name</label>
-                                        <Input data-testid="quick-item-name" value={quickItemData.name} onChange={(event) => setQuickItemData((current) => ({ ...current, name: event.target.value }))} />
-                                        {quickItemErrors.name ? <span className="dp-error-text">{quickItemErrors.name}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">SKU</label>
-                                        <Input data-testid="quick-item-sku" value={quickItemData.sku} onChange={(event) => setQuickItemData((current) => ({ ...current, sku: event.target.value }))} />
-                                        {quickItemErrors.sku ? <span className="dp-error-text">{quickItemErrors.sku}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Unit</label>
-                                        <Select
-                                            value={quickItemData.unit_id}
-                                            onChange={(value) => setQuickItemData((current) => ({ ...current, unit_id: value }))}
-                                            options={support.units.map((unit) => ({ value: unit.id, label: unit.name }))}
-                                        />
-                                        {quickItemErrors.unit_id ? <span className="dp-error-text">{quickItemErrors.unit_id}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Selling Price</label>
-                                        <InputNumber
-                                            id="quick-item-selling-price"
-                                            data-testid="quick-item-selling-price"
-                                            controls={false}
-                                            className="w-full"
-                                            value={quickItemData.selling_price}
-                                            min={0}
-                                            step={0.01}
-                                            onChange={(value) => setQuickItemData((current) => ({ ...current, selling_price: Number(value || 0) }))}
-                                        />
-                                        {quickItemErrors.selling_price ? <span className="dp-error-text">{quickItemErrors.selling_price}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Tax %</label>
-                                        <InputNumber
-                                            id="quick-item-tax-rate"
-                                            data-testid="quick-item-tax-rate"
-                                            controls={false}
-                                            className="w-full"
-                                            value={quickItemData.tax_rate}
-                                            min={0}
-                                            step={0.01}
-                                            onChange={(value) => setQuickItemData((current) => ({ ...current, tax_rate: Number(value || 0) }))}
-                                        />
-                                        {quickItemErrors.tax_rate ? <span className="dp-error-text">{quickItemErrors.tax_rate}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-1">
-                                        <label className="dp-field-label">Open</label>
-                                        <InputNumber
-                                            id="quick-item-opening-stock"
-                                            data-testid="quick-item-opening-stock"
-                                            controls={false}
-                                            className="w-full"
-                                            value={quickItemData.opening_stock}
-                                            min={0}
-                                            step={0.001}
-                                            onChange={(value) => setQuickItemData((current) => ({ ...current, opening_stock: Number(value || 0) }))}
-                                        />
-                                    </div>
-                                </div>
-                                <div style={{ marginTop: 8 }}>
-                                    <Space size={6}>
-                                        <Button type="primary" onClick={saveQuickItem} loading={quickItemSaving}>
-                                            Save Item
-                                        </Button>
-                                        <Button onClick={() => setShowQuickItem(false)}>Cancel</Button>
-                                    </Space>
-                                </div>
-                            </div>
-                        ) : null}
                     </div>
                 </section>
 
@@ -823,10 +664,10 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                     <div className="dp-section-body">
                         <Space size={6}>
                             <Button onClick={() => submit('draft')} loading={processing}>
-                                Save ({shortcuts.save})
+                                Save
                             </Button>
                             <Button data-testid="invoice-finalize" type="primary" onClick={() => submit('final')} loading={processing}>
-                                Finalize (Ctrl+Enter)
+                                Finalize
                             </Button>
                             {invoice.id ? (
                                 <>
@@ -838,12 +679,171 @@ export default function InvoiceForm({ mode, invoice, selected_customer, selected
                                     </a>
                                 </>
                             ) : null}
-                            <Button onClick={clearVoucher}>Clear ({shortcuts.clearForm})</Button>
-                            <Button onClick={() => router.visit(paths.invoices.index)}>Cancel ({shortcuts.goBack})</Button>
+                            <Button onClick={clearVoucher}>Clear</Button>
+                            <Button onClick={() => router.visit(paths.invoices.index)}>Cancel</Button>
                         </Space>
                     </div>
                 </section>
             </div>
+
+            <Modal
+                open={showQuickCustomer}
+                title="Add Customer"
+                onCancel={() => setShowQuickCustomer(false)}
+                footer={null}
+                destroyOnClose
+            >
+                <div className="dp-form-grid">
+                    <div className="dp-field col-span-12">
+                        <label className="dp-field-label">Name</label>
+                        <Input
+                            data-testid="quick-customer-name"
+                            value={quickCustomerData.name}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    name: event.target.value,
+                                }))
+                            }
+                        />
+                        {quickCustomerErrors.name ? <span className="dp-error-text">{quickCustomerErrors.name}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Code</label>
+                        <Input
+                            data-testid="quick-customer-code"
+                            value={quickCustomerData.code}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    code: event.target.value,
+                                }))
+                            }
+                        />
+                        {quickCustomerErrors.code ? <span className="dp-error-text">{quickCustomerErrors.code}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Phone</label>
+                        <Input
+                            data-testid="quick-customer-phone"
+                            value={quickCustomerData.phone}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    phone: event.target.value,
+                                }))
+                            }
+                        />
+                        {quickCustomerErrors.phone ? <span className="dp-error-text">{quickCustomerErrors.phone}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Email</label>
+                        <Input
+                            data-testid="quick-customer-email"
+                            value={quickCustomerData.email}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    email: event.target.value,
+                                }))
+                            }
+                        />
+                        {quickCustomerErrors.email ? <span className="dp-error-text">{quickCustomerErrors.email}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12">
+                        <label className="dp-field-label">Address</label>
+                        <Input
+                            value={quickCustomerData.billing_address}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    billing_address: event.target.value,
+                                }))
+                            }
+                        />
+                        {quickCustomerErrors.billing_address ? <span className="dp-error-text">{quickCustomerErrors.billing_address}</span> : null}
+                    </div>
+                </div>
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <Button onClick={() => setShowQuickCustomer(false)}>Cancel</Button>
+                    <Button type="primary" onClick={saveQuickCustomer} loading={quickCustomerSaving}>
+                        Save Customer
+                    </Button>
+                </div>
+            </Modal>
+
+            <Modal
+                open={showQuickItem}
+                title="Add Item"
+                onCancel={() => setShowQuickItem(false)}
+                footer={null}
+                destroyOnClose
+            >
+                <div className="dp-form-grid">
+                    <div className="dp-field col-span-12">
+                        <label className="dp-field-label">Item Name</label>
+                        <Input data-testid="quick-item-name" value={quickItemData.name} onChange={(event) => setQuickItemData((current) => ({ ...current, name: event.target.value }))} />
+                        {quickItemErrors.name ? <span className="dp-error-text">{quickItemErrors.name}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">SKU</label>
+                        <Input data-testid="quick-item-sku" value={quickItemData.sku} onChange={(event) => setQuickItemData((current) => ({ ...current, sku: event.target.value }))} />
+                        {quickItemErrors.sku ? <span className="dp-error-text">{quickItemErrors.sku}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Unit</label>
+                        <Select value={quickItemData.unit_id} onChange={(value) => setQuickItemData((current) => ({ ...current, unit_id: value }))} options={support.units.map((unit) => ({ value: unit.id, label: unit.name }))} />
+                        {quickItemErrors.unit_id ? <span className="dp-error-text">{quickItemErrors.unit_id}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Opening Stock</label>
+                        <InputNumber
+                            id="quick-item-opening-stock"
+                            data-testid="quick-item-opening-stock"
+                            controls={false}
+                            className="w-full"
+                            value={quickItemData.opening_stock}
+                            min={0}
+                            step={0.001}
+                            onChange={(value) => setQuickItemData((current) => ({ ...current, opening_stock: Number(value || 0) }))}
+                        />
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-6">
+                        <label className="dp-field-label">Selling Price</label>
+                        <InputNumber
+                            id="quick-item-selling-price"
+                            data-testid="quick-item-selling-price"
+                            controls={false}
+                            className="w-full"
+                            value={quickItemData.selling_price}
+                            min={0}
+                            step={0.01}
+                            onChange={(value) => setQuickItemData((current) => ({ ...current, selling_price: Number(value || 0) }))}
+                        />
+                        {quickItemErrors.selling_price ? <span className="dp-error-text">{quickItemErrors.selling_price}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-6">
+                        <label className="dp-field-label">Tax %</label>
+                        <InputNumber
+                            id="quick-item-tax-rate"
+                            data-testid="quick-item-tax-rate"
+                            controls={false}
+                            className="w-full"
+                            value={quickItemData.tax_rate}
+                            min={0}
+                            step={0.01}
+                            onChange={(value) => setQuickItemData((current) => ({ ...current, tax_rate: Number(value || 0) }))}
+                        />
+                        {quickItemErrors.tax_rate ? <span className="dp-error-text">{quickItemErrors.tax_rate}</span> : null}
+                    </div>
+                </div>
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <Button onClick={() => setShowQuickItem(false)}>Cancel</Button>
+                    <Button type="primary" onClick={saveQuickItem} loading={quickItemSaving}>
+                        Save Item
+                    </Button>
+                </div>
+            </Modal>
         </AppShell>
     );
 }

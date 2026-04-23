@@ -1,24 +1,30 @@
 <x-guest-layout>
-    <div class="mb-4 border-b border-[#999] pb-3">
-        <h1 class="text-xl font-semibold text-[#111827]">Company Selection</h1>
-        <p class="mt-1 text-xs text-[#6b7280]">Select company and continue to user login.</p>
+    <div class="mb-4 border-b border-[#d9dee8] pb-3">
+        <h1 class="text-xl font-semibold text-[#0f172a]">Company Selection</h1>
+        <p class="mt-1 text-sm text-[#64748b]">Open the current company profile or update the installation details.</p>
     </div>
 
     @if ($hasCompany)
-        <div class="space-y-3">
-            <div class="border border-[#999] bg-[#f8f8f8] px-3 py-2 text-sm">
-                <div class="font-semibold text-[#111827]">{{ $company['name'] }}</div>
-                <div class="text-xs text-[#6b7280]">Fiscal Year: {{ $company['fiscalYearLabel'] ?: 'Not set' }}</div>
+        <section class="mb-4 space-y-3 rounded-lg border border-[#d9dee8] bg-white p-3">
+            <div class="text-sm font-semibold text-[#0f172a]">Current Company</div>
+            <div class="rounded-lg border border-[#e9edf4] bg-[#f8fafc] px-3 py-2 text-sm">
+                <div class="font-semibold text-[#0f172a]">{{ $company['name'] }}</div>
+                <div class="text-xs text-[#64748b]">Fiscal Year: {{ $company['fiscalYearLabel'] ?: 'Not set' }}</div>
             </div>
 
             <form method="POST" action="{{ route('company.select.store') }}">
                 @csrf
-                <button class="dp-btn-primary w-full justify-center" type="submit">Use This Company</button>
+                <button class="dp-btn-primary w-full justify-center" type="submit">Continue With This Company</button>
             </form>
+        </section>
+    @endif
 
-            <p class="text-xs text-[#6b7280]">If fiscal year is missing, set it after login in Settings.</p>
-        </div>
-    @else
+    <section class="space-y-3 rounded-lg border border-[#d9dee8] bg-white p-3">
+        <div class="text-sm font-semibold text-[#0f172a]">{{ $hasCompany ? 'Update Company Profile' : 'Set Up Company' }}</div>
+        @if ($hasCompany)
+            <div class="text-sm text-[#64748b]">Single-business mode. Saving here updates the company details used by this installation.</div>
+        @endif
+
         <form method="POST" action="{{ route('company.setup') }}" class="space-y-3">
             @csrf
 
@@ -66,7 +72,7 @@
                 </div>
 
                 <div class="flex items-end">
-                    <label class="inline-flex items-center gap-2 text-xs text-[#374151]">
+                    <label class="inline-flex items-center gap-2 text-xs text-[#475569]">
                         <input type="checkbox" name="display_bs_dates" value="1" @checked(old('display_bs_dates')) />
                         Display BS dates
                     </label>
@@ -96,7 +102,7 @@
                 </div>
             </div>
 
-            <button class="dp-btn-primary w-full justify-center" type="submit">Create Company</button>
+            <button class="dp-btn-primary w-full justify-center" type="submit">{{ $hasCompany ? 'Save Company Settings' : 'Create Company' }}</button>
         </form>
-    @endif
+    </section>
 </x-guest-layout>

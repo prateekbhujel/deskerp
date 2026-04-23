@@ -23,7 +23,7 @@ interface SuppliersFormProps {
 }
 
 export default function SuppliersForm({ mode, supplier }: SuppliersFormProps) {
-    const { isMac, shortcuts } = usePlatformShortcuts();
+    const { isMac } = usePlatformShortcuts();
     const { data, setData, post, put, processing, errors, transform } = useForm({
         code: supplier.code ?? '',
         name: supplier.name ?? '',
@@ -155,7 +155,7 @@ export default function SuppliersForm({ mode, supplier }: SuppliersFormProps) {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Button type="primary" onClick={() => submit()} loading={processing}>
-                            Save {shortcuts.save}
+                            Save
                         </Button>
                         <Button onClick={() => router.visit(paths.suppliers.index)}>Cancel</Button>
                     </div>

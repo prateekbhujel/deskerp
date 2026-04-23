@@ -1,9 +1,9 @@
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 import { paths, withQuery } from '@/lib/paths';
 import { SharedProps } from '@/types/shared';
 import { router, usePage } from '@inertiajs/react';
-import { Button, Input, Layout } from 'antd';
+import { Button, Dropdown, Input, Layout } from 'antd';
+import type { MenuProps } from 'antd';
 import { PropsWithChildren, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 const { Header, Sider, Content } = Layout;
@@ -20,7 +20,6 @@ interface NavItem {
     key: string;
     label: string;
     href: string;
-    shortcut?: string;
 }
 
 interface NavSection {
@@ -36,38 +35,42 @@ function isEditableTarget(target: EventTarget | null): boolean {
     return Boolean(target.closest('input, textarea, select, [contenteditable="true"], .ant-select-dropdown, .ant-picker-dropdown'));
 }
 
+function formatRole(role?: string | null) {
+    return (role ?? 'admin').replace('_', ' ');
+}
+
 export function AppShell({ title, subtitle, activeKey, extra, children, mode }: AppShellProps) {
     const page = usePage<SharedProps>();
-    const { isMac, shortcuts } = usePlatformShortcuts();
     const [sidebarHidden, setSidebarHidden] = useState(false);
     const [invoiceSearch, setInvoiceSearch] = useState('');
     const navRefs = useRef<Array<HTMLElement | null>>([]);
     const isViewOnly = page.props.auth.user?.role === 'view_only';
+    const companyName = page.props.settings.companyName?.trim() || 'DeskERP';
 
     const navSections = useMemo<NavSection[]>(
         () => [
             {
                 title: 'Transactions',
                 items: [
-                    { key: 'new-invoice', label: 'Sales Voucher', href: paths.invoices.create, shortcut: shortcuts.newInvoice },
-                    { key: 'new-receipt', label: 'Receive Payment', href: paths.payments.createReceived, shortcut: shortcuts.newPayment },
+                    { key: 'new-invoice', label: 'Sales Voucher', href: paths.invoices.create },
+                    { key: 'new-receipt', label: 'Receive Payment', href: paths.payments.createReceived },
                     { key: 'new-payment', label: 'Make Payment', href: paths.payments.createMade },
-                    { key: 'invoices', label: 'Invoices Register', href: paths.invoices.index, shortcut: shortcuts.searchInvoice },
+                    { key: 'invoices', label: 'Invoices Register', href: paths.invoices.index },
                     { key: 'payments', label: 'Payments Register', href: paths.payments.index },
                 ],
             },
             {
                 title: 'Masters',
                 items: [
-                    { key: 'items', label: 'Items & Pricing', href: paths.items.index, shortcut: isMac ? '⌥M' : 'Alt+M' },
-                    { key: 'customers', label: 'Customers', href: paths.customers.index, shortcut: isMac ? '⌥K' : 'Alt+K' },
-                    { key: 'suppliers', label: 'Suppliers', href: paths.suppliers.index, shortcut: isMac ? '⌥U' : 'Alt+U' },
+                    { key: 'items', label: 'Items & Pricing', href: paths.items.index },
+                    { key: 'customers', label: 'Customers', href: paths.customers.index },
+                    { key: 'suppliers', label: 'Suppliers', href: paths.suppliers.index },
                 ],
             },
             {
                 title: 'Reports',
                 items: [
-                    { key: 'reports', label: 'Main Reports', href: paths.reports.index, shortcut: shortcuts.reports },
+                    { key: 'reports', label: 'Report Center', href: paths.reports.index },
                     { key: 'report-sales', label: 'Sales Register', href: paths.reports.sales },
                     { key: 'report-payments', label: 'Payment Report', href: paths.reports.payments },
                     { key: 'report-stock', label: 'Stock Summary', href: paths.reports.inventory },
@@ -76,13 +79,13 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
             {
                 title: 'System',
                 items: [
-                    { key: 'dashboard', label: 'Main Menu', href: paths.dashboard, shortcut: isMac ? '⌥D' : 'Alt+D' },
-                    { key: 'settings', label: 'Settings / Fiscal Year', href: paths.settings },
+                    { key: 'dashboard', label: 'Main Menu', href: paths.dashboard },
+                    { key: 'settings', label: 'Settings', href: paths.settings },
                     { key: 'backups', label: 'Backup / Restore', href: paths.backups },
                 ],
             },
         ],
-        [isMac, shortcuts.newInvoice, shortcuts.newPayment, shortcuts.reports, shortcuts.searchInvoice],
+        [],
     );
 
     const filteredSections = useMemo(() => {
@@ -92,7 +95,7 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
 
         return navSections.map((section) => ({
             ...section,
-            items: section.items.filter((item) => !['new-invoice', 'new-receipt', 'new-payment'].includes(item.key)),
+            items: section.items.filter((item) => !['new-invoice', 'new-receipt', 'new-payment', 'settings', 'backups'].includes(item.key)),
         }));
     }, [isViewOnly, navSections]);
 
@@ -143,7 +146,8 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
 
     const fiscalLabel = page.props.settings.fiscalYear.label ? `FY ${page.props.settings.fiscalYear.label}` : 'FY ---';
     const currentMode = mode ?? 'Draft';
-    const todayDate = new Date().toLocaleDateString('en-CA');
+    const dateMode = page.props.settings.displayBsDates ? 'BS dates' : 'AD dates';
+    const buildLabel = `v${page.props.appVersion ?? '0.0.0'}`;
 
     const submitInvoiceSearch = () => {
         router.visit(withQuery(paths.invoices.index, { q: invoiceSearch }), {
@@ -151,6 +155,51 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
             preserveScroll: true,
         });
     };
+
+    const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
+        if (key === 'settings') {
+            router.visit(paths.settings);
+            return;
+        }
+
+        if (key === 'company') {
+            router.post(paths.company.change);
+            return;
+        }
+
+        if (key === 'logout') {
+            router.post(paths.logout);
+        }
+    };
+
+    const menuItems: MenuProps['items'] = [
+        {
+            key: 'identity',
+            label: (
+                <div className="dp-menu-identity">
+                    <strong>{page.props.auth.user?.name ?? 'Admin'}</strong>
+                    <span>{formatRole(page.props.auth.user?.role)}</span>
+                    <span>{buildLabel}</span>
+                </div>
+            ),
+            disabled: true,
+        },
+        {
+            key: 'settings',
+            label: 'Settings',
+        },
+        {
+            key: 'company',
+            label: 'Company Screen',
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: 'logout',
+            label: 'Log Out',
+        },
+    ];
 
     useKeyboardShortcuts([
         {
@@ -235,11 +284,11 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
     return (
         <Layout className="dp-shell" style={{ minHeight: '100vh' }}>
             {!sidebarHidden ? (
-                <Sider width={220} theme="dark" trigger={null} style={{ background: '#1a1e2e' }}>
+                <Sider width={216} theme="dark" trigger={null} style={{ background: '#162032' }}>
                     <div className="dp-sidebar">
                         <div className="dp-sidebar-header">
-                            <span className="dp-sidebar-title">DESKERP</span>
-                            <span className="dp-kbd">{shortcuts.toggleSidebar}</span>
+                            <div className="dp-sidebar-brand">DeskERP</div>
+                            <div className="dp-sidebar-company">{companyName}</div>
                         </div>
 
                         {filteredSections.map((section) => (
@@ -262,7 +311,6 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
                                             onClick={() => router.visit(item.href)}
                                         >
                                             <span>{item.label}</span>
-                                            {item.shortcut ? <span className="dp-kbd">{item.shortcut}</span> : null}
                                         </button>
                                     );
                                 })}
@@ -272,7 +320,7 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
                         <div className="dp-sidebar-footer">
                             <div>{fiscalLabel}</div>
                             <div>{page.props.auth.user?.name ?? 'Admin'}</div>
-                            <div>{(page.props.auth.user?.role ?? 'admin').replace('_', ' ')}</div>
+                            <div>{buildLabel}</div>
                         </div>
                     </div>
                 </Sider>
@@ -281,60 +329,74 @@ export function AppShell({ title, subtitle, activeKey, extra, children, mode }: 
             <Layout>
                 <Header className="dp-topbar">
                     <div className="dp-topbar-left">
+                        <Button size="small" onClick={() => setSidebarHidden((value) => !value)}>
+                            {sidebarHidden ? 'Menu' : 'Hide Menu'}
+                        </Button>
                         <span className="dp-topbar-title" data-testid="app-shell-title">
                             DESKERP
                         </span>
+                        <span className="dp-topbar-meta">{companyName}</span>
                         <span className="dp-chip">{fiscalLabel}</span>
-                        <span>{page.props.auth.user?.name ?? 'Admin'}</span>
-                        <span style={{ color: '#6b7280' }}>{title.toUpperCase()}</span>
-                        {subtitle ? <span style={{ color: '#8b93a8' }}>{subtitle}</span> : null}
                     </div>
 
                     <div className="dp-topbar-right">
                         <Input
                             size="small"
-                            style={{ width: 220 }}
+                            className="dp-global-search"
                             data-global-search="true"
                             value={invoiceSearch}
                             onChange={(event) => setInvoiceSearch(event.target.value)}
                             onPressEnter={submitInvoiceSearch}
-                            placeholder={`Search Invoice ${shortcuts.searchInvoice}`}
+                            placeholder="Search invoice number"
                         />
                         {!isViewOnly ? (
                             <>
                                 <Button size="small" type="primary" onClick={() => router.visit(paths.invoices.create)}>
-                                    Invoice {shortcuts.newInvoice}
+                                    New Invoice
                                 </Button>
                                 <Button size="small" onClick={() => router.visit(paths.payments.createReceived)}>
-                                    Payment {shortcuts.newPayment}
+                                    New Payment
                                 </Button>
                             </>
                         ) : null}
                         <Button size="small" onClick={() => router.visit(paths.reports.index)}>
-                            Reports {shortcuts.reports}
+                            Reports
                         </Button>
+                        <Dropdown menu={{ items: menuItems, onClick: handleMenuClick }} trigger={['click']} placement="bottomRight">
+                            <Button size="small">{page.props.auth.user?.name ?? 'Admin'}</Button>
+                        </Dropdown>
                     </div>
                 </Header>
 
                 <Content className="dp-content">
                     {page.props.flash.success ? <div className="dp-inline-message dp-inline-message-success">{page.props.flash.success}</div> : null}
                     {page.props.flash.error ? <div className="dp-inline-message dp-inline-message-error">{page.props.flash.error}</div> : null}
+
+                    <div className="dp-page-header">
+                        <div>
+                            <h1 className="dp-title">{title}</h1>
+                            {subtitle ? <p className="dp-subtitle">{subtitle}</p> : null}
+                        </div>
+                        {extra ? <div className="dp-page-header-extra">{extra}</div> : null}
+                    </div>
+
                     {children}
-                    {extra ? <div style={{ marginTop: 8 }}>{extra}</div> : null}
                 </Content>
 
                 <div className="dp-status-bar">
                     <span>{fiscalLabel}</span>
                     <span>|</span>
+                    <span>{companyName}</span>
+                    <span>|</span>
                     <span>{page.props.auth.user?.name ?? 'Admin'}</span>
+                    <span>|</span>
+                    <span>{formatRole(page.props.auth.user?.role)}</span>
                     <span>|</span>
                     <span>Mode: {currentMode}</span>
                     <span>|</span>
-                    <span>Date: {todayDate}</span>
-                    <span>|</span>
-                    <span>{shortcuts.save}: Save</span>
-                    <span>|</span>
-                    <span>Esc: Back</span>
+                    <span>{dateMode}</span>
+                    <span className="dp-status-spacer" />
+                    <span>{buildLabel}</span>
                 </div>
             </Layout>
         </Layout>

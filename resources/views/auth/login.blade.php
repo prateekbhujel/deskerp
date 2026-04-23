@@ -1,10 +1,12 @@
 <x-guest-layout>
-    <div class="mb-4 border-b border-[#999] pb-3">
-        <h1 class="text-xl font-semibold tracking-tight text-[#111827]">DeskERP Login</h1>
-        <p class="mt-1 text-xs text-[#6b7280]">Version {{ config('app.version', '0.0.0') }}</p>
+    @php($settings = app(\App\Services\SettingsService::class))
+
+    <div class="mb-4 border-b border-[#d9dee8] pb-3">
+        <h1 class="text-xl font-semibold tracking-tight text-[#111827]">Sign In</h1>
+        <p class="mt-1 text-sm text-[#64748b]">{{ $settings->get('company_name', 'DeskERP') }} @if($settings->get('fiscal_year_label')) | FY {{ $settings->get('fiscal_year_label') }} @endif</p>
     </div>
 
-    <x-auth-session-status class="mb-3 border border-[#999] bg-[#f3f4f6] px-3 py-2 text-xs text-[#111827]" :status="session('status')" />
+    <x-auth-session-status class="mb-3 rounded-md border border-[#d9dee8] bg-[#f8fafc] px-3 py-2 text-sm text-[#111827]" :status="session('status')" />
 
     <form method="POST" action="{{ route('login') }}" class="space-y-3">
         @csrf
@@ -26,8 +28,8 @@
         </button>
     </form>
 
-    <div class="mt-4 border border-[#999] bg-[#f8f8f8] px-3 py-2 text-xs text-[#4b5563]">
-        <div>Default Username: <span class="font-semibold text-[#111827]">{{ env('DESKERP_ADMIN_USERNAME', 'admin') }}</span></div>
-        <div>Password: <span class="font-semibold text-[#111827]">{{ env('DESKERP_ADMIN_PASSWORD', 'deskerp123') }}</span></div>
+    <div class="mt-4 flex items-center justify-between gap-4 border-t border-[#e7edf5] pt-3 text-sm text-[#64748b]">
+        <span>Use the admin credentials created during company setup.</span>
+        <a class="dp-guest-link" href="{{ route('company.select') }}">Company Screen</a>
     </div>
 </x-guest-layout>

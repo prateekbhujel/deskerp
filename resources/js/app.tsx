@@ -8,7 +8,7 @@ import { createRoot } from 'react-dom/client';
 import type { ComponentType } from 'react';
 
 InertiaProgress.init({
-    color: '#0f766e',
+    color: '#1677ff',
     showSpinner: false,
 });
 
@@ -30,32 +30,34 @@ createInertiaApp({
             <ConfigProvider
                 theme={{
                     token: {
-                        colorPrimary: '#0f766e',
-                        borderRadius: 0,
-                        borderRadiusLG: 0,
-                        borderRadiusSM: 0,
+                        colorPrimary: '#1677ff',
+                        borderRadius: 6,
+                        borderRadiusLG: 6,
+                        borderRadiusSM: 4,
                         boxShadow: 'none',
                         boxShadowSecondary: 'none',
                         boxShadowTertiary: 'none',
-                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                        fontSize: 12,
+                        fontFamily:
+                            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
+                        fontSize: 13,
                     },
                     components: {
                         Button: {
-                            borderRadius: 0,
-                            boxShadow: 'none',
+                            borderRadius: 6,
+                            defaultShadow: 'none',
+                            primaryShadow: 'none',
                         },
                         Input: {
-                            borderRadius: 0,
-                            activeShadow: 'none',
+                            borderRadius: 6,
+                            activeShadow: '0 0 0 2px rgba(22,119,255,0.16)',
                         },
                         Select: {
-                            borderRadius: 0,
-                            activeOutlineColor: 'transparent',
+                            borderRadius: 6,
+                            activeOutlineColor: 'rgba(22,119,255,0.16)',
                         },
                         Table: {
-                            borderRadius: 0,
-                            headerBorderRadius: 0,
+                            borderRadius: 6,
+                            headerBorderRadius: 6,
                         },
                     },
                 }}

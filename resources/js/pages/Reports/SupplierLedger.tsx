@@ -68,6 +68,7 @@ export default function SupplierLedger({ supplier, ledger, filters }: SupplierLe
                                 <Button type="primary" onClick={() => applyFilters()}>
                                     Show
                                 </Button>{' '}
+                                <Button onClick={() => window.print()}>Print</Button>{' '}
                                 <a href={withQuery(paths.reports.supplierLedger(supplier.id), { ...localFilters, export: 'csv' })}>
                                     <Button>Export CSV</Button>
                                 </a>{' '}

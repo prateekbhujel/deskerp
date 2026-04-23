@@ -20,8 +20,8 @@ interface PaymentsReportProps {
         amount: string;
     }>;
     summary: {
-        received: number;
-        made: number;
+        received: string;
+        made: string;
     };
     filters: {
         direction: string;
@@ -105,6 +105,7 @@ export default function PaymentsReport({ payments, summary, filters }: PaymentsR
                                 <Button type="primary" onClick={() => applyFilters()}>
                                     Show
                                 </Button>{' '}
+                                <Button onClick={() => window.print()}>Print</Button>{' '}
                                 <a href={withQuery(paths.reports.payments, { ...localFilters, export: 'csv' })}>
                                     <Button>Export CSV</Button>
                                 </a>{' '}

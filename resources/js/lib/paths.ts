@@ -54,6 +54,11 @@ export const paths = {
     settings: '/settings',
     settingsUsers: '/settings/users',
     settingsUserUpdate: (id: number | string) => `/settings/users/${id}`,
+    logout: '/logout',
+    company: {
+        select: '/company',
+        change: '/company/change',
+    },
     backups: '/backups',
     backupsDownload: '/backups/download',
     backupsRestore: '/backups/restore',

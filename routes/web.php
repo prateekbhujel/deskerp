@@ -35,6 +35,7 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::post('/company/change', [CompanySelectionController::class, 'change'])->name('company.change');
 
     Route::resource('customers', CustomerController::class);
     Route::resource('suppliers', SupplierController::class);

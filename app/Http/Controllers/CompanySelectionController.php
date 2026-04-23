@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\SettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -84,5 +85,17 @@ class CompanySelectionController extends Controller
         return redirect()
             ->route('login')
             ->with('status', 'Company setup completed. Sign in to continue.');
+    }
+
+    public function change(Request $request): RedirectResponse
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()
+            ->route('company.select')
+            ->with('status', 'Select a company profile to continue.');
     }
 }

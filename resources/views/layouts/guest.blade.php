@@ -9,13 +9,36 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="antialiased">
-        <div class="min-h-screen bg-[#f8f8f8] text-[#111827]">
-            <div class="mx-auto flex min-h-screen max-w-3xl items-center px-4 py-6">
-                <div class="w-full border border-[#999] bg-white p-4">
+    @php($settings = app(\App\Services\SettingsService::class))
+    <body class="dp-guest-body antialiased">
+        <div class="dp-guest-shell">
+            <aside class="dp-guest-aside">
+                <div>
+                    <div class="dp-guest-brand">DeskERP</div>
+                    <div class="mt-2 text-sm text-[#9fb0cf]">Company access and local setup</div>
+                </div>
+
+                <div class="dp-guest-meta">
+                    <div>
+                        <strong>Company</strong>
+                        <div>{{ $settings->get('company_name', 'Not configured') }}</div>
+                    </div>
+                    <div>
+                        <strong>Fiscal Year</strong>
+                        <div>{{ $settings->get('fiscal_year_label', 'Not configured') }}</div>
+                    </div>
+                    <div>
+                        <strong>Version</strong>
+                        <div>{{ config('app.version', '0.0.0') }}</div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="dp-guest-main">
+                <div class="dp-guest-card">
                     {{ $slot }}
                 </div>
-            </div>
+            </main>
         </div>
     </body>
 </html>

@@ -8,7 +8,7 @@ import { paths } from '@/lib/paths';
 import { LookupOption, SharedProps } from '@/types/shared';
 import { router, useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Button, Input, InputNumber, Select, Space } from 'antd';
+import { Button, Input, InputNumber, Modal, Select, Space } from 'antd';
 import { KeyboardEvent as ReactKeyboardEvent, useState } from 'react';
 
 interface CustomerLookupRecord {
@@ -63,7 +63,7 @@ interface PaymentFormProps {
 export default function PaymentsForm({ mode, payment, selected_customer, selected_supplier, selected_invoice, methods }: PaymentFormProps) {
     const page = usePage<SharedProps>();
     const useBsDates = page.props.settings.displayBsDates;
-    const { isMac, shortcuts } = usePlatformShortcuts();
+    const { isMac } = usePlatformShortcuts();
 
     const [customerOption, setCustomerOption] = useState<LookupOption<CustomerLookupRecord> | null>(
         selected_customer
@@ -249,7 +249,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
             allowInInputs: true,
             handler: () => {
                 if (data.direction === 'received') {
-                    setShowQuickCustomer((current) => !current);
+                    setShowQuickCustomer(true);
                 }
             },
         },
@@ -348,7 +348,7 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                 <section className="dp-section-block">
                     <div className="dp-section-head">
                         <h3 className="dp-section-title">Allocation</h3>
-                        {data.direction === 'received' ? <Button onClick={() => setShowQuickCustomer((current) => !current)}>Add Customer {shortcuts.addCustomer}</Button> : null}
+                        {data.direction === 'received' ? <Button onClick={() => setShowQuickCustomer(true)}>Add Customer</Button> : null}
                     </div>
                     <div className="dp-section-body">
                         <div className="dp-form-grid">
@@ -443,82 +443,6 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                             </div>
                         </div>
 
-                        {showQuickCustomer && data.direction === 'received' ? (
-                            <div style={{ marginTop: 8, border: '1px solid #999', padding: 8 }}>
-                                <div className="dp-form-grid">
-                                    <div className="dp-field col-span-12 xl:col-span-3">
-                                        <label className="dp-field-label">Name</label>
-                                        <Input
-                                            value={quickCustomerData.name}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    name: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                        {quickCustomerErrors.name ? <span className="dp-error-text">{quickCustomerErrors.name}</span> : null}
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Code</label>
-                                        <Input
-                                            value={quickCustomerData.code}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    code: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Phone</label>
-                                        <Input
-                                            value={quickCustomerData.phone}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    phone: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-2">
-                                        <label className="dp-field-label">Email</label>
-                                        <Input
-                                            value={quickCustomerData.email}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    email: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div className="dp-field col-span-12 xl:col-span-3">
-                                        <label className="dp-field-label">Address</label>
-                                        <Input
-                                            value={quickCustomerData.billing_address}
-                                            onChange={(event) =>
-                                                setQuickCustomerData((current) => ({
-                                                    ...current,
-                                                    billing_address: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                </div>
-                                <div style={{ marginTop: 8 }}>
-                                    <Space size={6}>
-                                        <Button type="primary" onClick={saveQuickCustomer} loading={quickCustomerSaving}>
-                                            Save Customer
-                                        </Button>
-                                        <Button onClick={() => setShowQuickCustomer(false)}>Cancel</Button>
-                                    </Space>
-                                </div>
-                            </div>
-                        ) : null}
-
                         {hasOverpayment ? <div className="dp-error-text" style={{ marginTop: 6 }}>Amount exceeds outstanding by {overpaymentAmount.toFixed(2)}.</div> : null}
                     </div>
                 </section>
@@ -548,13 +472,91 @@ export default function PaymentsForm({ mode, payment, selected_customer, selecte
                 <section className="dp-section-block">
                     <Space size={6}>
                         <Button data-testid="payment-save" type="primary" onClick={submit} loading={processing} disabled={hasOverpayment}>
-                            Save ({shortcuts.save})
+                            Save
                         </Button>
-                        <Button onClick={clearForm}>Clear ({shortcuts.clearForm})</Button>
-                        <Button onClick={() => router.visit(paths.payments.index)}>Cancel ({shortcuts.goBack})</Button>
+                        <Button onClick={clearForm}>Clear</Button>
+                        <Button onClick={() => router.visit(paths.payments.index)}>Cancel</Button>
                     </Space>
                 </section>
             </div>
+
+            <Modal
+                open={showQuickCustomer && data.direction === 'received'}
+                title="Add Customer"
+                onCancel={() => setShowQuickCustomer(false)}
+                footer={null}
+                destroyOnClose
+            >
+                <div className="dp-form-grid">
+                    <div className="dp-field col-span-12">
+                        <label className="dp-field-label">Name</label>
+                        <Input
+                            value={quickCustomerData.name}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    name: event.target.value,
+                                }))
+                            }
+                        />
+                        {quickCustomerErrors.name ? <span className="dp-error-text">{quickCustomerErrors.name}</span> : null}
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Code</label>
+                        <Input
+                            value={quickCustomerData.code}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    code: event.target.value,
+                                }))
+                            }
+                        />
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Phone</label>
+                        <Input
+                            value={quickCustomerData.phone}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    phone: event.target.value,
+                                }))
+                            }
+                        />
+                    </div>
+                    <div className="dp-field col-span-12 xl:col-span-4">
+                        <label className="dp-field-label">Email</label>
+                        <Input
+                            value={quickCustomerData.email}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    email: event.target.value,
+                                }))
+                            }
+                        />
+                    </div>
+                    <div className="dp-field col-span-12">
+                        <label className="dp-field-label">Address</label>
+                        <Input
+                            value={quickCustomerData.billing_address}
+                            onChange={(event) =>
+                                setQuickCustomerData((current) => ({
+                                    ...current,
+                                    billing_address: event.target.value,
+                                }))
+                            }
+                        />
+                    </div>
+                </div>
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <Button onClick={() => setShowQuickCustomer(false)}>Cancel</Button>
+                    <Button type="primary" onClick={saveQuickCustomer} loading={quickCustomerSaving}>
+                        Save Customer
+                    </Button>
+                </div>
+            </Modal>
         </AppShell>
     );
 }

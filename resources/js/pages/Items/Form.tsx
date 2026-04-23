@@ -174,7 +174,7 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
                 <section className="dp-section-block">
                     <div className="dp-section-head">
                         <h3 className="dp-section-title">Price Tiers</h3>
-                        <Button onClick={() => setData('price_tiers', [...data.price_tiers, { label: '', amount: '' }])}>Add Tier (Alt+T)</Button>
+                        <Button onClick={() => setData('price_tiers', [...data.price_tiers, { label: '', amount: '' }])}>Add Tier</Button>
                     </div>
                     <Table
                         rowKey={(_, index) => index ?? 0}
@@ -240,9 +240,9 @@ export default function ItemsForm({ mode, item, units, categories }: ItemFormPro
                 <section className="dp-section-block">
                     <Space size={6}>
                         <Button type="primary" loading={processing} onClick={submit}>
-                            Save Item (Ctrl+S)
+                            Save Item
                         </Button>
-                        <Button onClick={() => router.visit(paths.items.index)}>Cancel (Escape)</Button>
+                        <Button onClick={() => router.visit(paths.items.index)}>Cancel</Button>
                         <span>Active Price Tiers: {summary.tierCount}</span>
                     </Space>
                 </section>
